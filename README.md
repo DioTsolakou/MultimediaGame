@@ -1,6 +1,7 @@
 Platformer Game for Multimedia course.
 
 TO DO :
+
 -Increase character size, 40x40 is too small.
 
 -Implement the cyclical nature of idle and running animations correctly.
