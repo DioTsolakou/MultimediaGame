@@ -63,8 +63,8 @@ class Player {
   }
   
   void checkForWallBumping() {
-    float guyWidth = guy_stand.width; // think of image size of player standing as the player's physical size
-    float guyHeight = guy_stand.height;
+    float guyWidth = characterIdle[0].width; // think of image size of player standing as the player's physical size
+    float guyHeight = characterIdle[0].height;
     int wallProbeDistance = int(guyWidth*0.3);
     int ceilingProbeDistance = int(guyHeight*0.95);
     
@@ -158,7 +158,7 @@ class Player {
     PVector centerOfPlayer;
     // we use this to check for coin overlap in center of player
     // (remember that "position" is keeping track of bottom center of feet)
-    centerOfPlayer = new PVector(position.x,position.y-guy_stand.height/2);
+    centerOfPlayer = new PVector(position.x,position.y-characterIdle[0].height/2);
 
     if(theWorld.worldSquareAt(centerOfPlayer)==World.TILE_COIN) {
       theWorld.setSquareAtToThis(centerOfPlayer, World.TILE_EMPTY);
@@ -196,8 +196,8 @@ class Player {
   }
   
   void draw() {
-    int guyWidth = guy_stand.width;
-    int guyHeight = guy_stand.height;
+    int guyWidth = characterIdle[0].width;
+    int guyHeight = characterIdle[0].height;
     
     if(velocity.x<-TRIVIAL_SPEED) {
       facingRight = false;
@@ -215,7 +215,7 @@ class Player {
     if(isOnGround==false) { // falling or jumping
       image(guy_run1, 0,0); // this running pose looks pretty good while in the air
     } else if(abs(velocity.x)<TRIVIAL_SPEED) { // not moving fast, i.e. standing
-      image(guy_stand, 0,0);
+      image(characterIdle[0], 0,0);
     } else { // running. Animate.
       if(animDelay--<0) {
         animDelay=RUN_ANIMATION_DELAY;

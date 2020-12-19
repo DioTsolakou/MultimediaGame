@@ -1,18 +1,13 @@
-/* Example Code for Platformer
- * By Chris DeLeon
- * 
- * For more free resources about hobby videogame development, check out:
- * http://www.hobbygamedev.com/
- * 
- * Project compiles in Processing - see Processing.org for more information!
- */
-
 // these next 2 lines are used for sound
 import ddf.minim.*;
 Minim minim;
 
 // for storing and referencing animation frames for the player character
-PImage guy_stand, guy_run1, guy_run2, winterTile;
+PImage[] characterIdle, characterRun, characterDeath, characterHurt, characterJump;
+PImage[][] characterAttack;
+PImage winterTile;
+
+PImage guy_stand, guy_run1, guy_run2;
 
 // music and sound effects
 AudioPlayer music; // AudioPlayer uses less memory. Better for music.
@@ -38,9 +33,11 @@ void setup() { // called automatically when the program starts
   
   font = loadFont("SansSerif-20.vlw");
 
-  guy_stand = loadImage("guy.png");
-  guy_run1 = loadImage("run1.png");
-  guy_run2 = loadImage("run2.png");
+  loadAnimations("GraveRobber");
+
+  guy_run1 = loadImage("run1.png"); //here just to work for now
+  guy_run2 = loadImage("run2.png"); //here just to work for now
+
   winterTile = loadImage("winterTile.png");
   
   cameraOffsetX = 0.0;
@@ -55,6 +52,100 @@ void setup() { // called automatically when the program starts
   frameRate(24); // this means draw() will be called 24 times per second
   
   resetGame(); // sets up player, game level, and timer
+}
+
+void loadCharacterAnimations(String characterName)
+{
+  loadIdleAnimation(characterName);
+
+  loadRunAnimation(characterName);
+
+  loadDeathAnimation(characterName);
+
+  loadHurtAnimation(characterName);
+
+  loadJumpAnimation(characterName);
+
+  loadAttackAnimation(characterName);
+}
+
+void loadAnimations(String characterName)
+{
+  if (characterName.equals("GraveRobber"))
+  {
+    loadCharacterAnimations("GraveRobber");
+  }
+  else if (characterName.equals("SteamMan"))
+  {
+    loadCharacterAnimations("SteamMan");
+  }
+  else if (characterName.equals("Woodcutter"))
+  {
+    loadAttackAnimation("Woodcutter");
+  }
+}
+
+void loadIdleAnimation(String characterName)
+{
+  characterIdle = new PImage[4];
+
+  for (int i = 0; i < characterIdle.length; i++)
+  {
+    characterIdle[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_idle_"+Integer.toString(i+1)+".png");
+  }
+}
+
+void loadRunAnimation(String characterName)
+{
+  characterRun = new PImage[6];
+
+  for (int i = 0; i < characterRun.length; i++)
+  {
+    characterRun[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_run_"+Integer.toString(i+1)+".png");
+  }
+}
+
+void loadDeathAnimation(String characterName)
+{
+  characterDeath = new PImage[6];
+
+  for (int i = 0; i < characterDeath.length; i++)
+  {
+    characterDeath[0] = loadImage("Characters\\"+characterName+"\\"+characterName+"_death_"+Integer.toString(i+1)+".png");
+  }
+}
+
+void loadHurtAnimation(String characterName)
+{
+  characterHurt = new PImage[3];
+
+  for (int i = 0; i < characterHurt.length; i++)
+  {
+    characterHurt[0] = loadImage("Characters\\"+characterName+"\\"+characterName+"_hurt_"+Integer.toString(i+1)+".png");
+  }
+}
+
+void loadJumpAnimation(String characterName)
+{
+  characterJump = new PImage[6];
+
+  for (int i = 0; i < characterJump.length; i++)
+  {
+    characterJump[0] = loadImage("Characters\\"+characterName+"\\"+characterName+"_jump_"+Integer.toString(i+1)+".png");
+  }
+}
+
+void loadAttackAnimation(String characterName)
+{
+  characterAttack = new PImage[3][6];
+
+  for (int i = 0; i < characterAttack.length; i++)
+  {
+    for (int j = 0; j < characterAttack[0].length; j++)
+    {
+      characterAttack[i][j] = loadImage("Characters\\"+characterName+"\\"+characterName+"_attack"+Integer.toString(i+1)+"_"+Integer.toString(j+1)+".png");
+    }
+  }
 }
 
 void resetGame() {
