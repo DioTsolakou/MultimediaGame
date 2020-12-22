@@ -15,15 +15,13 @@ class Player {
   static final int RUN_ANIMATION_DELAY = 3; // how many game cycles pass between animation updates?
   static final float TRIVIAL_SPEED = 1.0; // if under this speed, the player is drawn as standing still
 
-
-//test fotis counters
-int idleCounter = 0;
-int drawCounter = 1;
-int runCounter = 0;
-int jumpCounter = 0;
-int attackCounter = 0;
-int deathCounter = 0;
-int jumpCounterGlobal = 0;
+  int idleCounter = 0;
+  int drawCounter = 1;
+  int runCounter = 0;
+  int jumpCounter = 0;
+  int attackCounter = 0;
+  int deathCounter = 0;
+  int jumpCounterGlobal = 0;
   
   Player() { // constructor, gets called automatically when the Player instance is created
     isOnGround = false;
@@ -51,7 +49,7 @@ int jumpCounterGlobal = 0;
     {
       velocity.x -= speedHere;
     }
-    else if(theKeyboard.holdingLeft && theKeyboard.holdingQuickAttack)
+    else if ((theKeyboard.holdingLeft && theKeyboard.holdingQuickAttack) && isOnGround) //so that the character doesn't slow down while on air
     {
       velocity.x -= speedHere * 0.2;
     }
@@ -59,7 +57,25 @@ int jumpCounterGlobal = 0;
     {
       velocity.x += speedHere;
     }
-    else if(theKeyboard.holdingRight && theKeyboard.holdingQuickAttack)
+    else if ((theKeyboard.holdingRight && theKeyboard.holdingQuickAttack) && isOnGround)
+    {
+      velocity.x += speedHere * 0.2;
+    }
+
+    //needs to be fixed, skating
+    else if (theKeyboard.holdingLeft && !theKeyboard.holdingStrongAttack)
+    {
+      velocity.x -= speedHere;
+    }
+    else if ((theKeyboard.holdingLeft && theKeyboard.holdingStrongAttack) && isOnGround)
+    {
+      velocity.x -= speedHere * 0.2;
+    }
+    else if (theKeyboard.holdingRight && !theKeyboard.holdingStrongAttack)
+    {
+      velocity.x += speedHere;
+    }
+    else if ((theKeyboard.holdingRight && theKeyboard.holdingStrongAttack) && isOnGround)
     {
       velocity.x += speedHere * 0.2;
     }
@@ -253,7 +269,22 @@ int jumpCounterGlobal = 0;
           theKeyboard.holdingQuickAttack = false;
         }      
       }
-    } 
+    }
+    else if (theKeyboard.holdingStrongAttack) 
+    {
+      image(characterAttack[1][attackCounter], 0, 0);
+      if(abs(velocity.x) > TRIVIAL_SPEED)
+        image(dust[attackCounter], -20, guyHeight - 10);
+      if (drawCounter % 2 == 0)
+      {
+        attackCounter++;
+        if (attackCounter == 6) 
+        {
+          attackCounter = 0;
+          theKeyboard.holdingStrongAttack = false;
+        }      
+      }
+    }   
     else if (abs(velocity.x) < TRIVIAL_SPEED)
     { // not moving fast, i.e. standing
       jumpCounter = 0;
