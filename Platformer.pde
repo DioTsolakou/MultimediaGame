@@ -3,7 +3,7 @@ import ddf.minim.*;
 Minim minim;
 
 // for storing and referencing animation frames for the player character
-PImage[] characterIdle, characterRun, characterDeath, characterHurt, characterJump;
+PImage[] characterIdle, characterRun, characterDeath, characterHurt, characterJump, dust;
 PImage[][] characterAttack;
 PImage winterTile;
 
@@ -67,21 +67,15 @@ void loadCharacterAnimations(String characterName)
   loadJumpAnimation(characterName);
 
   loadAttackAnimation(characterName);
+
+  loadDustEffects();
 }
 
 void loadAnimations(String characterName)
 {
-  if (characterName.equals("GraveRobber"))
+  if (characterName.equals("GraveRobber") || characterName.equals("SteamMan") || characterName.equals("Woodcutter"))
   {
-    loadCharacterAnimations("GraveRobber");
-  }
-  else if (characterName.equals("SteamMan"))
-  {
-    loadCharacterAnimations("SteamMan");
-  }
-  else if (characterName.equals("Woodcutter"))
-  {
-    loadAttackAnimation("Woodcutter");
+    loadCharacterAnimations(characterName);
   }
 }
 
@@ -111,7 +105,7 @@ void loadDeathAnimation(String characterName)
 
   for (int i = 0; i < characterDeath.length; i++)
   {
-    characterDeath[0] = loadImage("Characters\\"+characterName+"\\"+characterName+"_death_"+Integer.toString(i+1)+".png");
+    characterDeath[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_death_"+Integer.toString(i+1)+".png");
   }
 }
 
@@ -121,7 +115,7 @@ void loadHurtAnimation(String characterName)
 
   for (int i = 0; i < characterHurt.length; i++)
   {
-    characterHurt[0] = loadImage("Characters\\"+characterName+"\\"+characterName+"_hurt_"+Integer.toString(i+1)+".png");
+    characterHurt[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_hurt_"+Integer.toString(i+1)+".png");
   }
 }
 
@@ -131,7 +125,7 @@ void loadJumpAnimation(String characterName)
 
   for (int i = 0; i < characterJump.length; i++)
   {
-    characterJump[0] = loadImage("Characters\\"+characterName+"\\"+characterName+"_jump_"+Integer.toString(i+1)+".png");
+    characterJump[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_jump_"+Integer.toString(i+1)+".png");
   }
 }
 
@@ -145,6 +139,16 @@ void loadAttackAnimation(String characterName)
     {
       characterAttack[i][j] = loadImage("Characters\\"+characterName+"\\"+characterName+"_attack"+Integer.toString(i+1)+"_"+Integer.toString(j+1)+".png");
     }
+  }
+}
+
+void loadDustEffects()
+{
+  dust = new PImage[6];
+
+  for (int i = 0; i < dust.length; i++)
+  {
+    dust[i] = loadImage("Characters\\Effects\\Run_dust_"+Integer.toString(i+1)+".png");
   }
 }
 

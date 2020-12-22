@@ -9,10 +9,10 @@
 
 class Keyboard {
   // used to track keyboard input
-  Boolean holdingUp,holdingRight,holdingLeft,holdingSpace;
+  Boolean holdingUp, holdingRight, holdingLeft, holdingSpace, holdingQuickAttack, holdingStrongAttack;
   
   Keyboard() {
-    holdingUp=holdingRight=holdingLeft=holdingSpace=false;
+    holdingUp = holdingRight = holdingLeft = holdingSpace = holdingQuickAttack = holdingStrongAttack = false;
   }
   
   /* The way that Processing, and many programming languages/environments, deals with keys is
@@ -21,13 +21,22 @@ class Keyboard {
    * use those pressed and released events to update some true/false values that we can check elsewhere.
    */
 
-  void pressKey(int key,int keyCode) {
+  void pressKey(int key, int keyCode) {
     if(key == 'r') { // never will be held down, so no Boolean needed to track it
       if(gameWon()) { // if the game has been won...
         resetGame(); // then R key resets it
       }
     }
-   
+
+    if(key == 'a' || key == 'A' || key == 'α' || key == 'Α')
+    {
+      holdingQuickAttack = true;
+      System.out.println("A");
+    }
+    if (key == 'd' || key == 'D' || key == 'δ' || key == 'Δ')
+    {
+      holdingStrongAttack = true;
+    }
     if (keyCode == UP) {
       holdingUp = true;
     }
@@ -41,7 +50,14 @@ class Keyboard {
       holdingSpace = true;
     }
   }
-  void releaseKey(int key,int keyCode) {
+  void releaseKey(int key, int keyCode) {
+
+    /*
+    if(key == 'a' || key == 'A' ||  key == 'α' || key == 'Α')
+    {
+      holdingQuickAttack = false;
+    }
+    */
     if (keyCode == UP) {
       holdingUp = false;
     }
