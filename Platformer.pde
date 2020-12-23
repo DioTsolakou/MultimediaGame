@@ -35,9 +35,6 @@ void setup() { // called automatically when the program starts
 
   loadAnimations("GraveRobber");
 
-  guy_run1 = loadImage("run1.png"); //here just to work for now
-  guy_run2 = loadImage("run2.png"); //here just to work for now
-
   winterTile = loadImage("winterTile.png");
   
   cameraOffsetX = 0.0;
@@ -49,7 +46,7 @@ void setup() { // called automatically when the program starts
   sndJump = minim.loadSample("jump.wav", buffersize);
   sndCoin = minim.loadSample("coin.wav", buffersize);
   
-  frameRate(24); // this means draw() will be called 24 times per second
+  frameRate(60); // this means draw() will be called 24 times per second
   
   resetGame(); // sets up player, game level, and timer
 }
@@ -211,7 +208,7 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
   
   if(focused == false) { // does the window currently not have keyboard focus?
     textAlign(CENTER);
-    outlinedText("Click this area to play.\n\nUse arrows to move.\nSpacebar to jump.",width/2, height-90);
+    outlinedText("Click this area to play\n\nUse arrows to move\nSpacebar to jump.\n\nA for quick attack\nD for strong attack",width/2, 50);
   } else {
     textAlign(LEFT); 
     outlinedText("Coins:"+thePlayer.coinsCollected +"/"+theWorld.coinsInStage,8, height-10);
@@ -229,7 +226,6 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
     }
     
     textAlign(CENTER); // center align the text
-    outlinedText("Music by Kevin MacLeod, Code by Chris DeLeon",width/2, 25);
     if(gameWon()) {
       outlinedText("All Coins Collected!\nPress R to Reset.",width/2, height/2-12);
     }
@@ -237,11 +233,11 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
 }
 
 void keyPressed() {
-  theKeyboard.pressKey(key,keyCode);
+  theKeyboard.pressKey(key, keyCode);
 }
 
 void keyReleased() {
-  theKeyboard.releaseKey(key,keyCode);
+  theKeyboard.releaseKey(key, keyCode);
 }
 
 void stop() { // automatically called when program exits. here we'll stop and unload sounds.

@@ -22,7 +22,7 @@ class Keyboard {
    */
 
   void pressKey(int key, int keyCode) {
-    if(key == 'r') { // never will be held down, so no Boolean needed to track it
+    if(key == 'r' || key == 'R' || key == 'ρ' || key == 'Ρ') { // never will be held down, so no Boolean needed to track it
       if(gameWon()) { // if the game has been won...
         resetGame(); // then R key resets it
       }
@@ -51,13 +51,6 @@ class Keyboard {
     }
   }
   void releaseKey(int key, int keyCode) {
-
-    /*
-    if(key == 'a' || key == 'A' ||  key == 'α' || key == 'Α')
-    {
-      holdingQuickAttack = false;
-    }
-    */
     if (keyCode == UP) {
       holdingUp = false;
     }

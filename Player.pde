@@ -22,6 +22,7 @@ class Player {
   int attackCounter = 0;
   int deathCounter = 0;
   int jumpCounterGlobal = 0;
+  float criticalChance = 0;
   
   Player() { // constructor, gets called automatically when the Player instance is created
     isOnGround = false;
@@ -63,7 +64,7 @@ class Player {
     }
 
     //needs to be fixed, skating
-    else if (theKeyboard.holdingLeft && !theKeyboard.holdingStrongAttack)
+/*     else if (theKeyboard.holdingLeft && !theKeyboard.holdingStrongAttack)
     {
       velocity.x -= speedHere;
     }
@@ -78,7 +79,8 @@ class Player {
     else if ((theKeyboard.holdingRight && theKeyboard.holdingStrongAttack) && isOnGround)
     {
       velocity.x += speedHere * 0.2;
-    }
+    } */
+
     velocity.x *= frictionHere; // causes player to constantly lose speed
     
     if (isOnGround) { // player can only jump if currently on the ground
@@ -234,7 +236,7 @@ class Player {
     }
     
     pushMatrix(); // lets us compound/accumulate translate/scale/rotate calls, then undo them all at once
-    translate(position.x,position.y);
+    translate(position.x, position.y);
     if (facingRight == false)
     {
       scale(-1, 1); // flip horizontally by scaling horizontally by -100%
@@ -260,7 +262,7 @@ class Player {
       image(characterAttack[0][attackCounter], 0, 0);
       if(abs(velocity.x) > TRIVIAL_SPEED)
         image(dust[attackCounter], -20, guyHeight - 10);
-      if (drawCounter % 2 == 0)
+      if (drawCounter % 4 == 0)
       {
         attackCounter++;
         if (attackCounter == 6) 
@@ -270,19 +272,44 @@ class Player {
         }      
       }
     }
-    else if (theKeyboard.holdingStrongAttack) 
+    else if (theKeyboard.holdingStrongAttack) //strong attack has the possibility to critically hit
     {
-      image(characterAttack[1][attackCounter], 0, 0);
-      if(abs(velocity.x) > TRIVIAL_SPEED)
-        image(dust[attackCounter], -20, guyHeight - 10);
-      if (drawCounter % 2 == 0)
+      //something might be wrong, there are critical hit notifs inside normal strong attack notifs and vice versa
+      //having a separate critical counter doesn't fix it
+      criticalChance = random(1.0f);
+      System.out.println(criticalChance);
+
+      if (criticalChance > 0.15f)
       {
-        attackCounter++;
-        if (attackCounter == 6) 
+        image(characterAttack[1][attackCounter], 0, 0);
+        if(abs(velocity.x) > TRIVIAL_SPEED)
+          image(dust[attackCounter], -20, guyHeight - 10);
+        if (drawCounter % 4 == 0)
         {
-          attackCounter = 0;
-          theKeyboard.holdingStrongAttack = false;
-        }      
+          System.out.println("Normal Strong Attack");
+          attackCounter++;
+          if (attackCounter == 6) 
+          {
+            attackCounter = 0;
+            theKeyboard.holdingStrongAttack = false;
+          }      
+        }
+      }
+      else
+      {
+        image(characterAttack[2][attackCounter], 0, 0); //critical
+        if(abs(velocity.x) > TRIVIAL_SPEED)
+          image(dust[attackCounter], -20, guyHeight - 10);
+        if (drawCounter % 8 == 0)
+        {
+          System.out.println("Critical Hit");
+          attackCounter++;
+          if (attackCounter == 6) 
+          {
+            attackCounter = 0;
+            theKeyboard.holdingStrongAttack = false;
+          }      
+        }
       }
     }   
     else if (abs(velocity.x) < TRIVIAL_SPEED)
@@ -291,7 +318,7 @@ class Player {
       jumpCounterGlobal = 0;
       
       image(characterIdle[idleCounter], 0, 0);
-      if (drawCounter % 6 == 0)
+      if (drawCounter % 10 == 0)
       {
         idleCounter++;
         if (idleCounter == 3)
@@ -304,33 +331,18 @@ class Player {
       jumpCounterGlobal = 0;
 
       image(characterRun[runCounter], 0, 0);
-      if (drawCounter % 3 == 0)
+      if (drawCounter % 4 == 0)
       {
         runCounter++;
         if (runCounter == 6)
           runCounter = 0;
       }
-
-      /* if (animDelay-- < 0) {
-        animDelay = RUN_ANIMATION_DELAY;
-        if (animFrame == 0) {
-          animFrame = 1;
-        } else {
-          animFrame = 0;
-        }
-      }
-      
-      if (animFrame == 0) {
-        image(guy_run1, 0,0);
-      } else {
-        image(guy_run2, 0,0);
-      } */
     }
     
     popMatrix(); // undoes all translate/scale/rotate calls since the pushMatrix earlier in this function
     drawCounter++;
 
-    if (drawCounter == 24)
+    if (drawCounter == 60)
       drawCounter = 1;
   }
 }
