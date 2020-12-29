@@ -29,7 +29,7 @@ int gameStartTimeSec,gameCurrentTimeSec;
 final float GRAVITY_POWER = 0.5; // try making it higher or lower!
 
 void setup() { // called automatically when the program starts
-  size(1280, 720); // how large the window/screen is for the game
+  size(1280, 720, P2D); // how large the window/screen is for the game
   
   font = loadFont("SansSerif-20.vlw");
 
@@ -40,13 +40,13 @@ void setup() { // called automatically when the program starts
   cameraOffsetX = 0.0;
   
   minim = new Minim(this);
-  music = minim.loadFile("PinballSpring.mp3", 1024);
-  music.loop();
+  //music = minim.loadFile("PinballSpring.mp3", 1024);
+  //music.loop();
   int buffersize = 256;
   sndJump = minim.loadSample("jump.wav", buffersize);
   sndCoin = minim.loadSample("coin.wav", buffersize);
   
-  frameRate(60); // this means draw() will be called 24 times per second
+  frameRate(60);
   
   resetGame(); // sets up player, game level, and timer
 }
@@ -183,18 +183,18 @@ void updateCameraPosition() {
   // minus "width of the screen/window" (width)
   
   cameraOffsetX = thePlayer.position.x-width/2;
-  if(cameraOffsetX < 0) {
+  if (cameraOffsetX < 0) {
     cameraOffsetX = 0;
   }
   
-  if(cameraOffsetX > rightEdge) {
+  if (cameraOffsetX > rightEdge) {
     cameraOffsetX = rightEdge;
   }
 }
 
 void draw() { // called automatically, 24 times per second because of setup()'s call to frameRate(24)
   pushMatrix(); // lets us easily undo the upcoming translate call
-  translate(-cameraOffsetX,0.0); // affects all upcoming graphics calls, until popMatrix
+  translate(-cameraOffsetX, 0.0); // affects all upcoming graphics calls, until popMatrix
 
   updateCameraPosition();
 
@@ -230,6 +230,8 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
       outlinedText("All Coins Collected!\nPress R to Reset.",width/2, height/2-12);
     }
   }
+
+  println(frameRate);
 }
 
 void keyPressed() {
@@ -241,7 +243,7 @@ void keyReleased() {
 }
 
 void stop() { // automatically called when program exits. here we'll stop and unload sounds.
-  music.close();
+  //music.close();
   sndJump.close();
   sndCoin.close();
  

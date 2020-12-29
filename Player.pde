@@ -12,17 +12,18 @@ class Player {
   static final float AIR_RUN_SPEED = 2.0; // like run speed, but used for control while in the air
   static final float SLOWDOWN_PERC = 0.6; // friction from the ground. multiplied by the x speed each frame.
   static final float AIR_SLOWDOWN_PERC = 0.85; // resistance in the air, otherwise air control enables crazy speeds
-  static final int RUN_ANIMATION_DELAY = 3; // how many game cycles pass between animation updates?
   static final float TRIVIAL_SPEED = 1.0; // if under this speed, the player is drawn as standing still
 
-  int idleCounter = 0;
   int drawCounter = 1;
+  int idleCounter = 0;
   int runCounter = 0;
   int jumpCounter = 0;
   int attackCounter = 0;
   int deathCounter = 0;
   int jumpCounterGlobal = 0;
   float criticalChance = 0;
+  Object[] ret = new Object[2];
+
   
   Player() { // constructor, gets called automatically when the Player instance is created
     isOnGround = false;
@@ -46,46 +47,20 @@ class Player {
     float speedHere = (isOnGround ? RUN_SPEED : AIR_RUN_SPEED);
     float frictionHere = (isOnGround ? SLOWDOWN_PERC : AIR_SLOWDOWN_PERC);
     
-    if (theKeyboard.holdingLeft && !theKeyboard.holdingQuickAttack)
+    float factor = 0;
+    if (theKeyboard.holdingLeft) factor = -1;
+    else if (theKeyboard.holdingRight) factor = 1;
+    if ((theKeyboard.holdingQuickAttack || theKeyboard.holdingStrongAttack) && isOnGround)
     {
-      velocity.x -= speedHere;
-    }
-    else if ((theKeyboard.holdingLeft && theKeyboard.holdingQuickAttack) && isOnGround) //so that the character doesn't slow down while on air
-    {
-      velocity.x -= speedHere * 0.2;
-    }
-    else if (theKeyboard.holdingRight && !theKeyboard.holdingQuickAttack)
-    {
-      velocity.x += speedHere;
-    }
-    else if ((theKeyboard.holdingRight && theKeyboard.holdingQuickAttack) && isOnGround)
-    {
-      velocity.x += speedHere * 0.2;
-    }
+      velocity.x *= 0.2;
+    } 
 
-    //needs to be fixed, skating
-/*     else if (theKeyboard.holdingLeft && !theKeyboard.holdingStrongAttack)
-    {
-      velocity.x -= speedHere;
-    }
-    else if ((theKeyboard.holdingLeft && theKeyboard.holdingStrongAttack) && isOnGround)
-    {
-      velocity.x -= speedHere * 0.2;
-    }
-    else if (theKeyboard.holdingRight && !theKeyboard.holdingStrongAttack)
-    {
-      velocity.x += speedHere;
-    }
-    else if ((theKeyboard.holdingRight && theKeyboard.holdingStrongAttack) && isOnGround)
-    {
-      velocity.x += speedHere * 0.2;
-    } */
-
-    velocity.x *= frictionHere; // causes player to constantly lose speed
+    velocity.x += factor * speedHere;
+    velocity.x *= frictionHere;
     
     if (isOnGround) { // player can only jump if currently on the ground
       if (theKeyboard.holdingSpace || theKeyboard.holdingUp) { // either up arrow or space bar cause the player to jump
-        sndJump.trigger(); // play sound
+        //sndJump.trigger(); // play sound
         velocity.y = -JUMP_POWER; // adjust vertical speed
         isOnGround = false; // mark that the player has left the ground, i.e. cannot jump again for now
       }
@@ -192,7 +167,7 @@ class Player {
 
     if (theWorld.worldSquareAt(centerOfPlayer)==World.TILE_COIN) {
       theWorld.setSquareAtToThis(centerOfPlayer, World.TILE_EMPTY);
-      sndCoin.trigger();
+      //sndCoin.trigger();
       coinsCollected++;
     }
   }
@@ -247,7 +222,7 @@ class Player {
     { // falling or jumping
       jumpCounterGlobal++;
       attackCounter = 5; // after attackCounter++ it becomes 6 so holdingQuickAttack becomes false
-      
+
       image(characterJump[jumpCounter], 0, 0); // this running pose looks pretty good while in the air
       if (jumpCounterGlobal % 8 == 0)
       {
@@ -255,88 +230,37 @@ class Player {
       }
       if(jumpCounterGlobal > 42)
           jumpCounter = 5;
-      System.out.println(jumpCounterGlobal);
-    } 
+    }
     else if (theKeyboard.holdingQuickAttack) 
     {
-      image(characterAttack[0][attackCounter], 0, 0);
-      if(abs(velocity.x) > TRIVIAL_SPEED)
-        image(dust[attackCounter], -20, guyHeight - 10);
-      if (drawCounter % 4 == 0)
-      {
-        attackCounter++;
-        if (attackCounter == 6) 
-        {
-          attackCounter = 0;
-          theKeyboard.holdingQuickAttack = false;
-        }      
-      }
+      playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack);
+      attackCounter = (int) ret[0];
+      theKeyboard.holdingQuickAttack = (Boolean) ret[1];
     }
     else if (theKeyboard.holdingStrongAttack) //strong attack has the possibility to critically hit
     {
       //something might be wrong, there are critical hit notifs inside normal strong attack notifs and vice versa
       //having a separate critical counter doesn't fix it
-      criticalChance = random(1.0f);
-      System.out.println(criticalChance);
-
       if (criticalChance > 0.15f)
       {
-        image(characterAttack[1][attackCounter], 0, 0);
-        if(abs(velocity.x) > TRIVIAL_SPEED)
-          image(dust[attackCounter], -20, guyHeight - 10);
-        if (drawCounter % 4 == 0)
-        {
-          System.out.println("Normal Strong Attack");
-          attackCounter++;
-          if (attackCounter == 6) 
-          {
-            attackCounter = 0;
-            theKeyboard.holdingStrongAttack = false;
-          }      
-        }
+        playAttackAnimation(1, 4, theKeyboard.holdingStrongAttack);
+        attackCounter =  (int) ret[0];
+        theKeyboard.holdingStrongAttack = (Boolean) ret[1];
       }
       else
       {
-        image(characterAttack[2][attackCounter], 0, 0); //critical
-        if(abs(velocity.x) > TRIVIAL_SPEED)
-          image(dust[attackCounter], -20, guyHeight - 10);
-        if (drawCounter % 8 == 0)
-        {
-          System.out.println("Critical Hit");
-          attackCounter++;
-          if (attackCounter == 6) 
-          {
-            attackCounter = 0;
-            theKeyboard.holdingStrongAttack = false;
-          }      
-        }
+        playAttackAnimation(2, 8, theKeyboard.holdingStrongAttack);
+        attackCounter = (int) ret[0];
+        theKeyboard.holdingStrongAttack = (Boolean) ret[1];
       }
     }   
-    else if (abs(velocity.x) < TRIVIAL_SPEED)
-    { // not moving fast, i.e. standing
-      jumpCounter = 0;
-      jumpCounterGlobal = 0;
-      
-      image(characterIdle[idleCounter], 0, 0);
-      if (drawCounter % 10 == 0)
-      {
-        idleCounter++;
-        if (idleCounter == 3)
-          idleCounter=0;
-      }
-      
-    }
-    else { // running. Animate.
+    else {
       jumpCounter = 0;
       jumpCounterGlobal = 0;
 
-      image(characterRun[runCounter], 0, 0);
-      if (drawCounter % 4 == 0)
-      {
-        runCounter++;
-        if (runCounter == 6)
-          runCounter = 0;
-      }
+      if (abs(velocity.x) < TRIVIAL_SPEED) 
+        idleCounter = playAnimation(characterIdle, idleCounter, 3, 10);
+      else runCounter = playAnimation(characterRun, runCounter, 6, 4);
     }
     
     popMatrix(); // undoes all translate/scale/rotate calls since the pushMatrix earlier in this function
@@ -344,5 +268,38 @@ class Player {
 
     if (drawCounter == 60)
       drawCounter = 1;
+  }
+
+  int playAnimation (PImage[] animationArray, int counter, int max, int mod) {
+    image(animationArray[counter], 0, 0);
+    if (drawCounter % mod == 0)
+    {
+      counter++;
+      if (counter == max) 
+      {
+        counter = 0;
+      }      
+    }
+
+    return counter;
+  }
+
+
+  void playAttackAnimation (int row, int mod, Boolean state)
+  {
+    image(characterAttack[row][attackCounter], 0, 0);
+    if(abs(velocity.x) > TRIVIAL_SPEED)
+      image(dust[attackCounter], -20, characterIdle[0].height - 10);
+    if (drawCounter % mod == 0)
+    {
+      attackCounter++;
+      if (attackCounter == 6) 
+      {
+        attackCounter = 0;
+        state = false;
+      }      
+    }
+    ret[0] = attackCounter;
+    ret[1] = state;
   }
 }

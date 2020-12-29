@@ -2,7 +2,6 @@ class World {
   int coinsInStage; // when we load a level, we count how many coins are in the level
   int coinRotateTimer; // number cycles, and is used to give coins a simple spinning effect
   
-
   static final int TILE_EMPTY = 0;
   static final int TILE_SOLID = 1;
   static final int TILE_COIN = 2;

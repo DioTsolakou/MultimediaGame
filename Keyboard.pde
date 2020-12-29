@@ -31,10 +31,10 @@ class Keyboard {
     if(key == 'a' || key == 'A' || key == 'α' || key == 'Α')
     {
       holdingQuickAttack = true;
-      System.out.println("A");
     }
     if (key == 'd' || key == 'D' || key == 'δ' || key == 'Δ')
     {
+      if (!holdingStrongAttack) thePlayer.criticalChance = random(1.0f);
       holdingStrongAttack = true;
     }
     if (keyCode == UP) {
