@@ -3,11 +3,16 @@ import ddf.minim.*;
 Minim minim;
 
 // for storing and referencing animation frames for the player character
-PImage[] characterIdle, characterRun, characterDeath, characterHurt, characterJump, dust;
+//PImage[] characterIdle, characterRun, characterDeath, characterHurt, characterJump, dust, enemyMove;
+PImage[] characterIdle = new PImage[4];
+PImage[] characterRun = new PImage[6];
+PImage[] characterDeath = new PImage[6];
+PImage[] characterJump = new PImage[6];
+PImage[] characterHurt = new PImage[3];
+PImage[] enemyMove = new PImage[6];
+PImage[] dust = new PImage[6];
 PImage[][] characterAttack;
 PImage winterTile;
-
-PImage guy_stand, guy_run1, guy_run2;
 
 // music and sound effects
 AudioPlayer music; // AudioPlayer uses less memory. Better for music.
@@ -19,6 +24,8 @@ float cameraOffsetX;
 Player thePlayer = new Player();
 World theWorld = new World();
 Keyboard theKeyboard = new Keyboard();
+Enemy[] theEnemy = new Enemy[5];
+int enemyCounter = 0;
 
 PFont font;
 
@@ -34,6 +41,7 @@ void setup() { // called automatically when the program starts
   font = loadFont("SansSerif-20.vlw");
 
   loadAnimations("GraveRobber");
+  initEnemies();
 
   winterTile = loadImage("winterTile.png");
   
@@ -51,22 +59,34 @@ void setup() { // called automatically when the program starts
   resetGame(); // sets up player, game level, and timer
 }
 
+void initEnemies()
+{
+  for (int i = 0; i < theEnemy.length; i++)
+  {
+    theEnemy[i] = new Enemy();
+  }
+}
+
 void loadCharacterAnimations(String characterName)
 {
-  loadIdleAnimation(characterName);
-
-  loadRunAnimation(characterName);
-
-  loadDeathAnimation(characterName);
-
-  loadHurtAnimation(characterName);
-
-  loadJumpAnimation(characterName);
-
+  loadAnimation(characterIdle, characterName, "idle");
+  loadAnimation(characterRun, characterName, "run");
+  loadAnimation(characterDeath, characterName, "death");
+  loadAnimation(characterHurt, characterName, "hurt");
+  loadAnimation(characterJump, characterName, "jump");
   loadAttackAnimation(characterName);
-
   loadDustEffects();
+  loadEnemyAnimation();
 }
+
+ void loadEnemyAnimation()
+{
+  enemyMove = new PImage[6];
+  for (int i = 0; i < enemyMove.length; i++)
+  {
+    enemyMove[i] = loadImage("Characters\\SteamMan\\SteamMan_walk_"+Integer.toString(i+1)+".png");
+  }
+} 
 
 void loadAnimations(String characterName)
 {
@@ -76,53 +96,10 @@ void loadAnimations(String characterName)
   }
 }
 
-void loadIdleAnimation(String characterName)
-{
-  characterIdle = new PImage[4];
-
-  for (int i = 0; i < characterIdle.length; i++)
+void loadAnimation(PImage[] animArray, String characterName, String animName) { 
+  for (int i = 0; i < animArray.length; i++)
   {
-    characterIdle[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_idle_"+Integer.toString(i+1)+".png");
-  }
-}
-
-void loadRunAnimation(String characterName)
-{
-  characterRun = new PImage[6];
-
-  for (int i = 0; i < characterRun.length; i++)
-  {
-    characterRun[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_run_"+Integer.toString(i+1)+".png");
-  }
-}
-
-void loadDeathAnimation(String characterName)
-{
-  characterDeath = new PImage[6];
-
-  for (int i = 0; i < characterDeath.length; i++)
-  {
-    characterDeath[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_death_"+Integer.toString(i+1)+".png");
-  }
-}
-
-void loadHurtAnimation(String characterName)
-{
-  characterHurt = new PImage[3];
-
-  for (int i = 0; i < characterHurt.length; i++)
-  {
-    characterHurt[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_hurt_"+Integer.toString(i+1)+".png");
-  }
-}
-
-void loadJumpAnimation(String characterName)
-{
-  characterJump = new PImage[6];
-
-  for (int i = 0; i < characterJump.length; i++)
-  {
-    characterJump[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_jump_"+Integer.toString(i+1)+".png");
+    animArray[i] = loadImage("Characters\\"+characterName+"\\"+characterName+"_"+animName+"_"+Integer.toString(i+1)+".png");
   }
 }
 
@@ -154,6 +131,9 @@ void resetGame() {
   // multiple levels could be supported by copying in a different start grid
   
   thePlayer.reset(); // reset the coins collected number, etc.
+
+  for (int i = 0; i < theEnemy.length; i++)
+    theEnemy[i].reset();
   
   theWorld.reload(); // reset world map
 
@@ -203,13 +183,19 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
   thePlayer.inputCheck();
   thePlayer.move();
   thePlayer.draw();
+
+  for (int i = 0; i < theEnemy.length; i++) {
+    theEnemy[i].move();
+    theEnemy[i].draw();
+  }
   
   popMatrix(); // undoes the translate function from earlier in draw()
   
-  if(focused == false) { // does the window currently not have keyboard focus?
+  if (focused == false) { // does the window currently not have keyboard focus?
     textAlign(CENTER);
     outlinedText("Click this area to play\n\nUse arrows to move\nSpacebar to jump.\n\nA for quick attack\nD for strong attack",width/2, 50);
-  } else {
+  } 
+  else {
     textAlign(LEFT); 
     outlinedText("Coins:"+thePlayer.coinsCollected +"/"+theWorld.coinsInStage,8, height-10);
     
@@ -231,7 +217,7 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
     }
   }
 
-  println(frameRate);
+  //println(frameRate);
 }
 
 void keyPressed() {

@@ -28,11 +28,11 @@ class Keyboard {
       }
     }
 
-    if(key == 'a' || key == 'A' || key == 'α' || key == 'Α')
+    if ((key == 'a' || key == 'A' || key == 'α' || key == 'Α') && thePlayer.staminaBar >= 20)
     {
       holdingQuickAttack = true;
     }
-    if (key == 'd' || key == 'D' || key == 'δ' || key == 'Δ')
+    if ((key == 'd' || key == 'D' || key == 'δ' || key == 'Δ') && thePlayer.staminaBar >=40)
     {
       if (!holdingStrongAttack) thePlayer.criticalChance = random(1.0f);
       holdingStrongAttack = true;

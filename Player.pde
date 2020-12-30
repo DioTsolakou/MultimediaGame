@@ -3,8 +3,6 @@ class Player {
 
   Boolean isOnGround; // used to keep track of whether the player is on the ground. useful for control and animation.
   Boolean facingRight; // used to keep track of which direction the player last moved in. used to flip player image.
-  int animDelay; // countdown timer between animation updates
-  int animFrame; // keeps track of which animation frame is currently shown for the player
   int coinsCollected; // a counter to keep a tally on how many coins the player has collected
   
   static final float JUMP_POWER = 11.0; // how hard the player jolts upward on jump
@@ -22,6 +20,8 @@ class Player {
   int deathCounter = 0;
   int jumpCounterGlobal = 0;
   float criticalChance = 0;
+  public int healthBar = 100;
+  public int staminaBar = 100;
   Object[] ret = new Object[2];
 
   
@@ -35,8 +35,6 @@ class Player {
   
   void reset() {
     coinsCollected = 0;
-    animDelay = 0;
-    animFrame = 0;
     velocity.x = 0;
     velocity.y = 0;
   }
@@ -87,7 +85,7 @@ class Player {
      */
     
     // used as probes to detect running into walls, ceiling
-    PVector leftSideHigh,rightSideHigh,leftSideLow,rightSideLow,topSide;
+    PVector leftSideHigh, rightSideHigh, leftSideLow, rightSideLow, topSide;
     leftSideHigh = new PVector();
     rightSideHigh = new PVector();
     leftSideLow = new PVector();
@@ -101,7 +99,7 @@ class Player {
     leftSideHigh.y = rightSideHigh.y = position.y-0.8*guyHeight; // shoulder high
 
     topSide.x = position.x; // center of player
-    topSide.y = position.y-ceilingProbeDistance; // top of guy
+    topSide.y = position.y - ceilingProbeDistance; // top of guy
 
     // if any edge of the player is inside a red killblock, reset the round
     if ( theWorld.worldSquareAt(topSide) == World.TILE_KILLBLOCK ||
@@ -174,13 +172,13 @@ class Player {
 
   void checkForFalling() {
     // If we're standing on an empty or coin tile, we're not standing on anything. Fall!
-    if (theWorld.worldSquareAt(position)==World.TILE_EMPTY ||
-       theWorld.worldSquareAt(position)==World.TILE_COIN) {
-       isOnGround=false;
+    if (theWorld.worldSquareAt(position) == World.TILE_EMPTY ||
+       theWorld.worldSquareAt(position) == World.TILE_COIN) {
+       isOnGround = false;
     }
     
-    if (isOnGround==false) { // not on ground?    
-      if (theWorld.worldSquareAt(position)==World.TILE_SOLID) { // landed on solid square?
+    if (isOnGround == false) { // not on ground?    
+      if (theWorld.worldSquareAt(position) == World.TILE_SOLID) { // landed on solid square?
         isOnGround = true;
         position.y = theWorld.topOfSquare(position);
         velocity.y = 0.0;
@@ -221,7 +219,7 @@ class Player {
     if (isOnGround == false)
     { // falling or jumping
       jumpCounterGlobal++;
-      attackCounter = 5; // after attackCounter++ it becomes 6 so holdingQuickAttack becomes false
+      //attackCounter = 5; // after attackCounter++ it becomes 6 so holdingQuickAttack becomes false
 
       image(characterJump[jumpCounter], 0, 0); // this running pose looks pretty good while in the air
       if (jumpCounterGlobal % 8 == 0)
@@ -233,25 +231,19 @@ class Player {
     }
     else if (theKeyboard.holdingQuickAttack) 
     {
-      playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack);
-      attackCounter = (int) ret[0];
-      theKeyboard.holdingQuickAttack = (Boolean) ret[1];
+      theKeyboard.holdingQuickAttack = playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack);
+/*       if (attackCounter == 5)
+        staminaBar -= 20; //consumes 4 times the stamina */
     }
     else if (theKeyboard.holdingStrongAttack) //strong attack has the possibility to critically hit
     {
-      //something might be wrong, there are critical hit notifs inside normal strong attack notifs and vice versa
-      //having a separate critical counter doesn't fix it
       if (criticalChance > 0.15f)
       {
-        playAttackAnimation(1, 4, theKeyboard.holdingStrongAttack);
-        attackCounter =  (int) ret[0];
-        theKeyboard.holdingStrongAttack = (Boolean) ret[1];
+        theKeyboard.holdingStrongAttack = playAttackAnimation(1, 4, theKeyboard.holdingStrongAttack);
       }
       else
       {
-        playAttackAnimation(2, 8, theKeyboard.holdingStrongAttack);
-        attackCounter = (int) ret[0];
-        theKeyboard.holdingStrongAttack = (Boolean) ret[1];
+        theKeyboard.holdingStrongAttack = playAttackAnimation(2, 8, theKeyboard.holdingStrongAttack);
       }
     }   
     else {
@@ -267,7 +259,13 @@ class Player {
     drawCounter++;
 
     if (drawCounter == 60)
+    {
       drawCounter = 1;
+      regenerateHealth();
+      regenerateStamina();
+      println(staminaBar);
+    }
+
   }
 
   int playAnimation (PImage[] animationArray, int counter, int max, int mod) {
@@ -284,8 +282,7 @@ class Player {
     return counter;
   }
 
-
-  void playAttackAnimation (int row, int mod, Boolean state)
+  Boolean playAttackAnimation (int row, int mod, Boolean state)
   {
     image(characterAttack[row][attackCounter], 0, 0);
     if(abs(velocity.x) > TRIVIAL_SPEED)
@@ -297,9 +294,26 @@ class Player {
       {
         attackCounter = 0;
         state = false;
+        if (theKeyboard.holdingQuickAttack)
+          staminaBar -= 20;
+        if (theKeyboard.holdingStrongAttack)
+          staminaBar -= 40;
       }      
     }
-    ret[0] = attackCounter;
-    ret[1] = state;
+    return state;
+  }
+
+  void regenerateHealth()
+  {
+    healthBar += 7;
+    healthBar = Math.max(healthBar, 0);  
+    healthBar = Math.min(healthBar, 100);
+  }
+
+  void regenerateStamina()
+  {
+    staminaBar += 10;
+    staminaBar = Math.max(staminaBar, 0);  
+    staminaBar = Math.min(staminaBar, 100);  
   }
 }

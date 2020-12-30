@@ -7,7 +7,8 @@ class World {
   static final int TILE_COIN = 2;
   static final int TILE_KILLBLOCK = 3;
   static final int TILE_START = 4; // the player starts where this is placed 
-   static final int TILE_FINISH = 5;
+  static final int TILE_FINISH = 5;
+  static final int TILE_ENEMY_START = 6;
   
   static final int GRID_UNIT_SIZE = 40; // size, in pixels, of each world unit square
   // if the above number becomes too small, how the player's wall bumping is detected may need to be updated
@@ -30,10 +31,10 @@ class World {
                          {0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                          {0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                          {2, 0, 2, 0, 0, 0, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                         {0, 2, 0, 0, 0, 0, 2, 1, 1, 1, 4, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                         {0, 2, 0, 0, 0, 0, 2, 1, 1, 1, 6, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                          {2, 0, 2, 0, 4, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                          {0, 0, 0, 2, 1, 2, 0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                         {1, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                         {1, 0, 0, 2, 0, 2, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 2, 0, 1, 6, 0, 0, 0, 1, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                          {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
                          {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
                          {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1} };
@@ -82,24 +83,24 @@ class World {
   }
   
   // these helper functions help us correct for the player moving into a world tile
-  float topOfSquare(PVector thisPosition) {
+  float topOfSquare (PVector thisPosition) {
     int thisY = int(thisPosition.y);
     thisY /= GRID_UNIT_SIZE;
     return float(thisY*GRID_UNIT_SIZE);
   }
-  float bottomOfSquare(PVector thisPosition) {
-    if(thisPosition.y<0) {
+  float bottomOfSquare (PVector thisPosition) {
+    if (thisPosition.y<0) {
       return 0;
     }
     return topOfSquare(thisPosition)+GRID_UNIT_SIZE;
   }
-  float leftOfSquare(PVector thisPosition) {
+  float leftOfSquare (PVector thisPosition) {
     int thisX = int(thisPosition.x);
     thisX /= GRID_UNIT_SIZE;
     return float(thisX*GRID_UNIT_SIZE);
   }
-  float rightOfSquare(PVector thisPosition) {
-    if(thisPosition.x<0) {
+  float rightOfSquare (PVector thisPosition) {
+    if (thisPosition.x<0) {
       return 0;
     }
     return leftOfSquare(thisPosition)+GRID_UNIT_SIZE;
@@ -110,13 +111,22 @@ class World {
     
     for (int i = 0; i < GRID_UNITS_WIDE; i++) {
       for (int ii = 0; ii < GRID_UNITS_TALL; ii++) {
-        if(start_Grid[ii][i] == TILE_START) { // player start position
+        if (start_Grid[ii][i] == TILE_START) { // player start position
           worldGrid[ii][i] = TILE_EMPTY; // put an empty tile in that spot
   
           // then update the player spot to the center of that tile
           thePlayer.position.x = i*GRID_UNIT_SIZE+(GRID_UNIT_SIZE/2);
           thePlayer.position.y = ii*GRID_UNIT_SIZE+(GRID_UNIT_SIZE/2);
-        } else {
+        }
+        else if (start_Grid[ii][i] == TILE_ENEMY_START)
+        {
+          worldGrid[ii][i] = TILE_EMPTY;
+          theEnemy[enemyCounter].position.x = i*GRID_UNIT_SIZE+(GRID_UNIT_SIZE/2);
+          theEnemy[enemyCounter].position.y = ii*GRID_UNIT_SIZE+(GRID_UNIT_SIZE/2);
+          enemyCounter++;
+        }
+        else
+        {
           if (start_Grid[ii][i]==TILE_COIN) {
             coinsInStage++;
           }
@@ -124,6 +134,7 @@ class World {
         }
       }
     }
+    enemyCounter = 0;
   }
   
   void render() { // draw the world
