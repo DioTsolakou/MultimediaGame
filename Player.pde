@@ -20,8 +20,8 @@ class Player {
   int deathCounter = 0;
   int jumpCounterGlobal = 0;
   float criticalChance = 0;
-  public int healthBar = 100;
-  public int staminaBar = 100;
+  public int health = 100;
+  public int stamina = 100;
   Object[] ret = new Object[2];
 
   
@@ -208,6 +208,9 @@ class Player {
       facingRight = true;
     }
     
+    drawHealthBar();
+    drawStaminaBar();
+    
     pushMatrix(); // lets us compound/accumulate translate/scale/rotate calls, then undo them all at once
     translate(position.x, position.y);
     if (facingRight == false)
@@ -233,7 +236,7 @@ class Player {
     {
       theKeyboard.holdingQuickAttack = playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack);
 /*       if (attackCounter == 5)
-        staminaBar -= 20; //consumes 4 times the stamina */
+        stamina -= 20; //consumes 4 times the stamina */
     }
     else if (theKeyboard.holdingStrongAttack) //strong attack has the possibility to critically hit
     {
@@ -263,7 +266,7 @@ class Player {
       drawCounter = 1;
       regenerateHealth();
       regenerateStamina();
-      println(staminaBar);
+      println(stamina);
     }
 
   }
@@ -292,12 +295,31 @@ class Player {
       attackCounter++;
       if (attackCounter == 6) 
       {
+        // substract stamina
         attackCounter = 0;
         state = false;
-        if (theKeyboard.holdingQuickAttack)
-          staminaBar -= 20;
-        if (theKeyboard.holdingStrongAttack)
-          staminaBar -= 40;
+
+        int dmg = 0;
+        if (theKeyboard.holdingQuickAttack) {
+          stamina -= 20;
+          dmg = 15;
+        }
+        if (theKeyboard.holdingStrongAttack) {
+          stamina -= 40;
+          dmg = 30;
+        }
+          
+        // do damage
+        for (int i = 0; i < theEnemy.length; i++) {
+          boolean b1 = Math.sqrt(Math.pow(position.x - theEnemy[i].position.x, 2) + Math.pow(position.y - theEnemy[i].position.y, 2)) < 80;
+          boolean b2 = (position.x < theEnemy[i].position.x && facingRight) || (position.x > theEnemy[i].position.x && !facingRight);
+          if (b1 && b2) {
+            System.out.println(i + " took " + dmg + " damage");
+            theEnemy[i].health -= dmg;
+            System.out.println(i + "'s current health is " + theEnemy[i].health);
+            theEnemy[i].isHurt = true;
+          }     
+        }     
       }      
     }
     return state;
@@ -305,15 +327,29 @@ class Player {
 
   void regenerateHealth()
   {
-    healthBar += 7;
-    healthBar = Math.max(healthBar, 0);  
-    healthBar = Math.min(healthBar, 100);
+    health += 7;
+    health = Math.max(health, 0);  
+    health = Math.min(health, 100);
   }
 
   void regenerateStamina()
   {
-    staminaBar += 10;
-    staminaBar = Math.max(staminaBar, 0);  
-    staminaBar = Math.min(staminaBar, 100);  
+    stamina += 10;
+    stamina = Math.max(stamina, 0);
+    stamina = Math.min(stamina, 100);
+  }
+
+  void drawHealthBar()
+  { 
+    fill(244, 3, 3);
+    stroke(0);
+    rect(Math.max(width/20, position.x - width/2), 30, map(health, 0, 100, 0, 150), 20);
+  }
+
+  void drawStaminaBar()
+  {
+    fill(0, 255, 0);
+    stroke(0);
+    rect(Math.max(width/20, position.x - width/2), 85, map(stamina, 0, 100, 0, 150), 20);
   }
 }

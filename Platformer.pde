@@ -10,9 +10,13 @@ PImage[] characterDeath = new PImage[6];
 PImage[] characterJump = new PImage[6];
 PImage[] characterHurt = new PImage[3];
 PImage[] enemyMove = new PImage[6];
+PImage[] enemyDeath = new PImage[6];
+PImage enemyHurt = new PImage();
 PImage[] dust = new PImage[6];
 PImage[][] characterAttack;
 PImage winterTile;
+PImage bg_image;
+PShape custom_rect;
 
 // music and sound effects
 AudioPlayer music; // AudioPlayer uses less memory. Better for music.
@@ -36,9 +40,10 @@ int gameStartTimeSec,gameCurrentTimeSec;
 final float GRAVITY_POWER = 0.5; // try making it higher or lower!
 
 void setup() { // called automatically when the program starts
-  size(1280, 720, P2D); // how large the window/screen is for the game
+  size(1280, 720, P2D);
   
   font = loadFont("SansSerif-20.vlw");
+  bg_image = loadImage("level1/BG.png");
 
   loadAnimations("GraveRobber");
   initEnemies();
@@ -76,16 +81,22 @@ void loadCharacterAnimations(String characterName)
   loadAnimation(characterJump, characterName, "jump");
   loadAttackAnimation(characterName);
   loadDustEffects();
-  loadEnemyAnimation();
+  loadEnemyAnimations();
 }
 
- void loadEnemyAnimation()
+ void loadEnemyAnimations()
 {
   enemyMove = new PImage[6];
   for (int i = 0; i < enemyMove.length; i++)
   {
     enemyMove[i] = loadImage("Characters\\SteamMan\\SteamMan_walk_"+Integer.toString(i+1)+".png");
   }
+  enemyDeath = new PImage[6];
+  for (int i = 0; i < enemyDeath.length; i++)
+  {
+    enemyDeath[i] = loadImage("Characters\\SteamMan\\SteamMan_death_"+Integer.toString(i+1)+".png");
+  }
+  enemyHurt = loadImage("Characters\\SteamMan\\SteamMan_hurt_"+Integer.toString(2)+".png");
 } 
 
 void loadAnimations(String characterName)
@@ -178,6 +189,8 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
 
   updateCameraPosition();
 
+  background(bg_image);
+
   theWorld.render();
     
   thePlayer.inputCheck();
@@ -196,6 +209,10 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
     outlinedText("Click this area to play\n\nUse arrows to move\nSpacebar to jump.\n\nA for quick attack\nD for strong attack",width/2, 50);
   } 
   else {
+    textAlign(LEFT);
+    outlinedText("Health", 20, 20);
+    outlinedText("Stamina", 20, 75);
+
     textAlign(LEFT); 
     outlinedText("Coins:"+thePlayer.coinsCollected +"/"+theWorld.coinsInStage,8, height-10);
     
@@ -217,7 +234,7 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
     }
   }
 
-  //println(frameRate);
+  println("FPS : " +frameRate);
 }
 
 void keyPressed() {

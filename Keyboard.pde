@@ -1,12 +1,3 @@
-/* Example Code for Platformer
- * By Chris DeLeon
- * 
- * For more free resources about hobby videogame development, check out:
- * http://www.hobbygamedev.com/
- * 
- * Project compiles in Processing - see Processing.org for more information!
- */
-
 class Keyboard {
   // used to track keyboard input
   Boolean holdingUp, holdingRight, holdingLeft, holdingSpace, holdingQuickAttack, holdingStrongAttack;
@@ -28,11 +19,11 @@ class Keyboard {
       }
     }
 
-    if ((key == 'a' || key == 'A' || key == 'α' || key == 'Α') && thePlayer.staminaBar >= 20)
+    if ((key == 'a' || key == 'A' || key == 'α' || key == 'Α') && thePlayer.stamina >= 20)
     {
       holdingQuickAttack = true;
     }
-    if ((key == 'd' || key == 'D' || key == 'δ' || key == 'Δ') && thePlayer.staminaBar >=40)
+    if ((key == 'd' || key == 'D' || key == 'δ' || key == 'Δ') && thePlayer.stamina >=40)
     {
       if (!holdingStrongAttack) thePlayer.criticalChance = random(1.0f);
       holdingStrongAttack = true;

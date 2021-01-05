@@ -3,12 +3,15 @@ class Enemy
   PVector position, velocity;
   Boolean facingRight;
   static final float TRIVIAL_SPEED = 1.0;
-  //int health = 100;
+  int health = 100;
 
   int drawCounter = 1;
   int walkCounter = 0;
+  int deathCounter = 0;
   int walkAnimationsCounter = 0;
   float movingFactor = 0;
+  boolean isHurt = false;
+  int hurtCounter = 0;
 
   Enemy()
   {
@@ -129,6 +132,9 @@ class Enemy
       facingRight = true;
     }
 
+    if (health > 0)
+      drawHealthBar();
+
     pushMatrix();
     translate(position.x, position.y + 20);
     if (facingRight == false)
@@ -137,28 +143,56 @@ class Enemy
     }
     translate(-enemyWidth/2, -enemyHeight);
 
-    image(enemyMove[walkCounter], 0, 0);
-    if (drawCounter % 10 == 0)
-    {
-      walkCounter++;
-      if (walkCounter == 5) 
-      {
-        walkCounter = 0;
-        walkAnimationsCounter++;
-      }      
+    if (!isHurt) {
+      if (health > 0) {
+        image(enemyMove[walkCounter], 0, 0);
+        if (drawCounter % 10 == 0)
+        {
+          walkCounter++;
+          if (walkCounter == 5) 
+          {
+            walkCounter = 0;
+            walkAnimationsCounter++;
+          }      
+        }
+
+        if (walkAnimationsCounter == 6)
+        {
+          patrol();      
+        }
+      }
+      else if (deathCounter != 6) {
+        image(enemyDeath[deathCounter], 0, 0);
+        if (drawCounter % 7 == 0) {
+          deathCounter++;         
+        }
+      }
+    }
+    else {
+      hurtCounter++;
+      image(enemyHurt, 0, 0);
+      if (hurtCounter == 15) {
+        isHurt = false;
+        hurtCounter = 0;
+      }
     }
 
-    if (walkAnimationsCounter == 6)
-    {
-      patrol();
-    }
     popMatrix();
-
     drawCounter++;
 
     if (drawCounter == 60)
     {
       drawCounter = 1;
     }
+  }
+
+  void drawHealthBar()
+  {
+    int dist = 0;
+    if (facingRight) dist = 40;
+    else dist = 15;
+    fill(244, 3, 3);
+    noStroke();
+    rect(position.x - dist, position.y - 60, map(health, 0, 100, 0, 50), 5);
   }
 }
