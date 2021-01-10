@@ -4,14 +4,21 @@ class Enemy
   Boolean facingRight;
   static final float TRIVIAL_SPEED = 1.0;
   int health = 100;
+  int stamina = 100;
 
   int drawCounter = 1;
   int walkCounter = 0;
   int deathCounter = 0;
+  int attackCounter = 0;
   int walkAnimationsCounter = 0;
   float movingFactor = 0;
   boolean isHurt = false;
   int hurtCounter = 0;
+  boolean normalAttack = false;
+  boolean strongAttack1 = false;
+  boolean strongAttack2 = false;
+  float randomAttack = 0;
+  boolean playerInRange = false;
 
   Enemy()
   {
@@ -133,7 +140,10 @@ class Enemy
     }
 
     if (health > 0)
+    {
       drawHealthBar();
+      drawStaminaBar();
+    }
 
     pushMatrix();
     translate(position.x, position.y + 20);
@@ -143,8 +153,25 @@ class Enemy
     }
     translate(-enemyWidth/2, -enemyHeight);
 
-    if (!isHurt) {
-      if (health > 0) {
+    if (health > 0) {
+      playerInRange = inRange(100);
+      stamina = Math.max(stamina, 0);
+      stamina = Math.min(stamina, 100);
+      if (playerInRange && stamina >= 30)
+      {
+        playAttackAnimation();
+      }
+      else if (isHurt)
+      {
+        hurtCounter++;
+        image(enemyHurt, 0, 0);
+        if (hurtCounter == 15) {
+          isHurt = false;
+          hurtCounter = 0;
+        }
+      }
+      else
+      {
         image(enemyMove[walkCounter], 0, 0);
         if (drawCounter % 10 == 0)
         {
@@ -161,19 +188,14 @@ class Enemy
           patrol();      
         }
       }
-      else if (deathCounter != 6) {
+    }
+    else
+    {
+      if (deathCounter != 6) {
         image(enemyDeath[deathCounter], 0, 0);
         if (drawCounter % 7 == 0) {
           deathCounter++;         
         }
-      }
-    }
-    else {
-      hurtCounter++;
-      image(enemyHurt, 0, 0);
-      if (hurtCounter == 15) {
-        isHurt = false;
-        hurtCounter = 0;
       }
     }
 
@@ -183,7 +205,72 @@ class Enemy
     if (drawCounter == 60)
     {
       drawCounter = 1;
+      //playerInRange = inRange(100);
+      regenerateStamina();
+      randomAttack = random(1.0f);
     }
+  }
+
+  void playAttackAnimation()
+  {
+    byte attackType = 0;
+    int mod = 1;
+    if (randomAttack < 0.33) {
+      attackType = 0; 
+      mod = 4;
+    }
+    if (randomAttack >= 0.33 && randomAttack < 0.66) {
+      attackType = 1;
+      mod = 4;
+    }
+    if (randomAttack >= 0.66)
+    {
+      attackType = 2;
+      mod = 8;
+    }
+
+    image(enemyAttack[attackType][attackCounter], 0, 0);
+    
+    if (drawCounter % mod == 0)
+    {
+      attackCounter++;
+
+      if (attackCounter == 6) 
+      {
+        // substract stamina
+        attackCounter = 0;
+
+        int dmg = 0;
+        if (attackType == 0) {
+          dmg = 15;
+          stamina = Math.max(0, stamina - 30);
+        }
+        else if (attackType == 1) {
+          dmg = 30;
+          stamina = Math.max(0, stamina - 30);
+        }
+        else if (attackType == 2)
+        {
+          dmg = 20;
+          stamina = Math.max(0, stamina - 30);
+        }
+          
+        // enemy dmg
+        boolean b1 = Math.sqrt(Math.pow(thePlayer.position.x - position.x, 2) + Math.pow(thePlayer.position.y - position.y, 2)) < 70;
+        boolean b2 = (thePlayer.position.x < position.x && facingRight) || (thePlayer.position.x > position.x && !facingRight);
+        boolean b3 = Math.abs(thePlayer.position.y - position.y) < 40;
+        if (b1 && b2 && b3) {
+          thePlayer.health -= dmg;
+          thePlayer.isHurt = true;          
+        }     
+      }      
+    }
+  }
+  
+  boolean inRange (int distance) {
+    if (Math.sqrt(Math.pow(thePlayer.position.x - position.x, 2) + Math.pow(thePlayer.position.y - position.y, 2)) < distance)
+      return true;
+    return false;
   }
 
   void drawHealthBar()
@@ -194,5 +281,22 @@ class Enemy
     fill(244, 3, 3);
     noStroke();
     rect(position.x - dist, position.y - 60, map(health, 0, 100, 0, 50), 5);
+  }
+
+  void drawStaminaBar()
+  {
+    int dist = 0;
+    if (facingRight) dist = 40;
+    else dist = 15;
+    fill(0, 255, 0);
+    noStroke();
+    rect(position.x - dist, position.y - 55, map(stamina, 0, 100, 0, 50), 5);
+  }
+
+  void regenerateStamina()
+  {
+    stamina += 10;
+    stamina = Math.max(stamina, 0);
+    stamina = Math.min(stamina, 100);
   }
 }

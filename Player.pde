@@ -22,6 +22,8 @@ class Player {
   float criticalChance = 0;
   public int health = 100;
   public int stamina = 100;
+  boolean isHurt = false;
+  int hurtCounter = 0;
   Object[] ret = new Object[2];
 
   
@@ -207,6 +209,21 @@ class Player {
     } else if (velocity.x > TRIVIAL_SPEED) {
       facingRight = true;
     }
+
+    if (health <= 0)
+    {
+      if (deathCounter != 6) {
+        image(characterDeath[deathCounter], 0, 0); // animation doesn't work, does it on the air instead of actual death position
+        if (drawCounter % 7 == 0) {
+          deathCounter++;         
+        }
+      }
+
+      if (deathCounter == 6)
+      {
+        resetGame();
+      }
+    }
     
     drawHealthBar();
     drawStaminaBar();
@@ -219,46 +236,58 @@ class Player {
     }
     translate(-guyWidth/2, -guyHeight); // drawing images centered on character's feet
 
-    if (isOnGround == false)
-    { // falling or jumping
-      jumpCounterGlobal++;
-      //attackCounter = 5; // after attackCounter++ it becomes 6 so holdingQuickAttack becomes false
-
-      image(characterJump[jumpCounter], 0, 0); // this running pose looks pretty good while in the air
-      if (jumpCounterGlobal % 8 == 0)
-      {
-        jumpCounter++; 
-      }
-      if(jumpCounterGlobal > 42)
-          jumpCounter = 5;
-    }
-    else if (theKeyboard.holdingQuickAttack) 
+    if (!isHurt)
     {
-      theKeyboard.holdingQuickAttack = playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack);
+      if (isOnGround == false)
+      { // falling or jumping
+        jumpCounterGlobal++;
+        //attackCounter = 5; // after attackCounter++ it becomes 6 so holdingQuickAttack becomes false
+
+        image(characterJump[jumpCounter], 0, 0); // this running pose looks pretty good while in the air
+        if (jumpCounterGlobal % 8 == 0)
+        {
+          jumpCounter++; 
+        }
+        if(jumpCounterGlobal > 42)
+          jumpCounter = 5;
+      }
+      else if (theKeyboard.holdingQuickAttack) 
+      {
+        theKeyboard.holdingQuickAttack = playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack);
 /*       if (attackCounter == 5)
         stamina -= 20; //consumes 4 times the stamina */
-    }
-    else if (theKeyboard.holdingStrongAttack) //strong attack has the possibility to critically hit
-    {
-      if (criticalChance > 0.15f)
-      {
-        theKeyboard.holdingStrongAttack = playAttackAnimation(1, 4, theKeyboard.holdingStrongAttack);
       }
-      else
+      else if (theKeyboard.holdingStrongAttack) //strong attack has the possibility to critically hit
       {
-        theKeyboard.holdingStrongAttack = playAttackAnimation(2, 8, theKeyboard.holdingStrongAttack);
-      }
-    }   
-    else {
-      jumpCounter = 0;
-      jumpCounterGlobal = 0;
+        if (criticalChance > 0.15f)
+        {
+          theKeyboard.holdingStrongAttack = playAttackAnimation(1, 4, theKeyboard.holdingStrongAttack);
+        }
+        else
+        {
+          theKeyboard.holdingStrongAttack = playAttackAnimation(2, 8, theKeyboard.holdingStrongAttack);
+        }
+      }   
+      else {
+        jumpCounter = 0;
+        jumpCounterGlobal = 0;
 
-      if (abs(velocity.x) < TRIVIAL_SPEED) 
-        idleCounter = playAnimation(characterIdle, idleCounter, 3, 10);
-      else runCounter = playAnimation(characterRun, runCounter, 6, 4);
+        if (abs(velocity.x) < TRIVIAL_SPEED) 
+          idleCounter = playAnimation(characterIdle, idleCounter, 3, 10);
+        else runCounter = playAnimation(characterRun, runCounter, 6, 4);
+      }
     }
-    
-    popMatrix(); // undoes all translate/scale/rotate calls since the pushMatrix earlier in this function
+    else
+    {
+      hurtCounter++;
+      image(characterHurt, 0, 0);
+      if (hurtCounter == 15) {
+        isHurt = false;
+        hurtCounter = 0;
+      }
+    }
+
+    popMatrix();
     drawCounter++;
 
     if (drawCounter == 60)
@@ -266,9 +295,7 @@ class Player {
       drawCounter = 1;
       regenerateHealth();
       regenerateStamina();
-      println(stamina);
     }
-
   }
 
   int playAnimation (PImage[] animationArray, int counter, int max, int mod) {
@@ -304,7 +331,7 @@ class Player {
           stamina -= 20;
           dmg = 15;
         }
-        if (theKeyboard.holdingStrongAttack) {
+        if (theKeyboard.holdingStrongAttack) { //need to implement more dmg or less stamina for criticals
           stamina -= 40;
           dmg = 30;
         }
@@ -313,7 +340,8 @@ class Player {
         for (int i = 0; i < theEnemy.length; i++) {
           boolean b1 = Math.sqrt(Math.pow(position.x - theEnemy[i].position.x, 2) + Math.pow(position.y - theEnemy[i].position.y, 2)) < 80;
           boolean b2 = (position.x < theEnemy[i].position.x && facingRight) || (position.x > theEnemy[i].position.x && !facingRight);
-          if (b1 && b2) {
+          boolean b3 = Math.abs(position.y - theEnemy[i].position.y) < 40;
+          if (b1 && b2 && b3) {
             System.out.println(i + " took " + dmg + " damage");
             theEnemy[i].health -= dmg;
             System.out.println(i + "'s current health is " + theEnemy[i].health);
@@ -343,13 +371,60 @@ class Player {
   { 
     fill(244, 3, 3);
     stroke(0);
-    rect(Math.max(width/20, position.x - width/2), 30, map(health, 0, 100, 0, 150), 20);
+
+    float drawPos = cameraOffsetX;
+    println("drawPos = " + drawPos);
+    /*if (position.x < (World.GRID_UNITS_WIDE * World.GRID_UNIT_SIZE)/2) 
+      drawPos = Math.max(20, position.x - width/2 + 20);
+    else 
+      drawPos = Math.min(3200 - width + 20, position.x - width/2 + 20);
+    */
+    rect(drawPos, 30, map(health, 0, 100, 0, 150), 20);
+    fill(0, 0, 0);
+    textSize(18);
+    text(health, drawPos + 75, 47);
+    
+    /*
+    if (position.x < 1600) {
+      rect(Math.max(width/20, position.x - width/2), 30, map(health, 0, 100, 0, 150), 20);
+      fill(0, 0, 0);
+      textSize(18);
+      text(health, Math.max(width/20, position.x - width/2) + 75, 47);
+    }
+    else {
+      rect(Math.min(3200 - width + width/20, position.x - width/2), 30, map(health, 0, 100, 0, 150), 20);
+      fill(0, 0, 0);
+      textSize(18);
+      text(health, Math.min(3200 - width + width/20, position.x - width/2) + 75, 47);
+    }
+    */
   }
 
   void drawStaminaBar()
   {
     fill(0, 255, 0);
     stroke(0);
-    rect(Math.max(width/20, position.x - width/2), 85, map(stamina, 0, 100, 0, 150), 20);
+
+    float drawPos = 0;
+    if (position.x < 1600) drawPos = Math.max(20, position.x - width/2);
+    else drawPos = Math.min(3200 - width + 20, Math.abs(position.x - width/2));
+
+    rect(drawPos, 85, map(stamina, 0, 100, 0, 150), 20);
+    fill(0, 0, 0);
+    textSize(18);
+    text(stamina, drawPos + 75, 102);
+ 
+/*     if (position.x < 1600) {
+      rect(Math.max(20, position.x - width/2), 85, map(stamina, 0, 100, 0, 150), 20);
+      fill(0, 0, 0);
+      textSize(18);
+      text(stamina, Math.max(20, position.x - width/2) + 75, 102);
+    }
+    else {
+      rect(Math.min(3200 - width +  20, position.x - width/2), 85, map(stamina, 0, 100, 0, 150), 20);
+      fill(0, 0, 0);
+      textSize(18);
+      text(stamina, Math.min(3200 - width + 20, position.x - width/2) + 75, 102);
+    } */
   }
 }

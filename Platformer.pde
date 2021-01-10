@@ -8,12 +8,13 @@ PImage[] characterIdle = new PImage[4];
 PImage[] characterRun = new PImage[6];
 PImage[] characterDeath = new PImage[6];
 PImage[] characterJump = new PImage[6];
-PImage[] characterHurt = new PImage[3];
+PImage characterHurt = new PImage();
+PImage[][] characterAttack;
+PImage[] dust = new PImage[6];
 PImage[] enemyMove = new PImage[6];
 PImage[] enemyDeath = new PImage[6];
 PImage enemyHurt = new PImage();
-PImage[] dust = new PImage[6];
-PImage[][] characterAttack;
+PImage[][] enemyAttack = new PImage[3][6];
 PImage winterTile;
 PImage bg_image;
 PShape custom_rect;
@@ -77,7 +78,7 @@ void loadCharacterAnimations(String characterName)
   loadAnimation(characterIdle, characterName, "idle");
   loadAnimation(characterRun, characterName, "run");
   loadAnimation(characterDeath, characterName, "death");
-  loadAnimation(characterHurt, characterName, "hurt");
+  characterHurt = loadImage("Characters\\"+characterName+"\\"+characterName+"_hurt_"+Integer.toString(2)+".png");
   loadAnimation(characterJump, characterName, "jump");
   loadAttackAnimation(characterName);
   loadDustEffects();
@@ -86,15 +87,22 @@ void loadCharacterAnimations(String characterName)
 
  void loadEnemyAnimations()
 {
-  enemyMove = new PImage[6];
   for (int i = 0; i < enemyMove.length; i++)
   {
     enemyMove[i] = loadImage("Characters\\SteamMan\\SteamMan_walk_"+Integer.toString(i+1)+".png");
   }
-  enemyDeath = new PImage[6];
+
   for (int i = 0; i < enemyDeath.length; i++)
   {
     enemyDeath[i] = loadImage("Characters\\SteamMan\\SteamMan_death_"+Integer.toString(i+1)+".png");
+  }
+
+  for (int i = 0; i < enemyAttack.length; i++)
+  {
+    for (int j = 0; j < enemyAttack[0].length; j++)
+    {
+      enemyAttack[i][j] = loadImage("Characters\\SteamMan\\SteamMan_attack"+Integer.toString(i+1)+"_"+Integer.toString(j+1)+".png");
+    }
   }
   enemyHurt = loadImage("Characters\\SteamMan\\SteamMan_hurt_"+Integer.toString(2)+".png");
 } 
@@ -213,6 +221,10 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
     outlinedText("Health", 20, 20);
     outlinedText("Stamina", 20, 75);
 
+    textAlign(RIGHT);
+    outlinedText("FPS", width - 40, 20);
+    outlinedText(String.valueOf((int) frameRate), width - 10, 20);
+
     textAlign(LEFT); 
     outlinedText("Coins:"+thePlayer.coinsCollected +"/"+theWorld.coinsInStage,8, height-10);
     
@@ -233,8 +245,6 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
       outlinedText("All Coins Collected!\nPress R to Reset.",width/2, height/2-12);
     }
   }
-
-  println("FPS : " +frameRate);
 }
 
 void keyPressed() {
