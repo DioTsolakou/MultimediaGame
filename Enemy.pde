@@ -19,18 +19,22 @@ class Enemy
   boolean strongAttack2 = false;
   float randomAttack = 0;
   boolean playerInRange = false;
+  Boolean isOnGround;
 
   Enemy()
   {
     position = new PVector();
     velocity = new PVector();
     facingRight = true;
+    isOnGround = false;
     reset();
   }
 
   void reset() {
     velocity.x = 0;
     velocity.y = 0;
+    health = 100;
+    stamina = 100;
   }
 
   void collisionCheck()
@@ -103,10 +107,28 @@ class Enemy
     }
   }
 
+  void checkForFalling() {
+    if (theWorld.worldSquareAt(position) == World.TILE_EMPTY) {
+      isOnGround = false;
+    }
+      
+    if (isOnGround == false) { // not on ground?    
+      if (theWorld.worldSquareAt(position) == World.TILE_SOLID) { // landed on solid square?
+        isOnGround = true;
+        position.y = theWorld.topOfSquare(position);
+        velocity.y = 0.0;
+      } else { // fall
+        velocity.y += GRAVITY_POWER;
+      }
+    }
+  }
+
   void move()
   {
     position.add(velocity);
     collisionCheck();
+
+    checkForFalling();
 
     if (facingRight)
     {
@@ -116,6 +138,7 @@ class Enemy
     {
       movingFactor = -1;
     }
+
     velocity.x += movingFactor*0.5;
     velocity.x *= 0.6;
   }
@@ -146,7 +169,7 @@ class Enemy
     }
 
     pushMatrix();
-    translate(position.x, position.y + 20);
+    translate(position.x, position.y);
     if (facingRight == false)
     {
       scale(-1, 1); // flip horizontally by scaling horizontally by -100%
@@ -242,16 +265,16 @@ class Enemy
 
         int dmg = 0;
         if (attackType == 0) {
-          dmg = 15;
+          dmg = 20;
           stamina = Math.max(0, stamina - 30);
         }
         else if (attackType == 1) {
-          dmg = 30;
+          dmg = 35;
           stamina = Math.max(0, stamina - 30);
         }
         else if (attackType == 2)
         {
-          dmg = 20;
+          dmg = 25;
           stamina = Math.max(0, stamina - 30);
         }
           
@@ -261,6 +284,7 @@ class Enemy
         boolean b3 = Math.abs(thePlayer.position.y - position.y) < 40;
         if (b1 && b2 && b3) {
           thePlayer.health -= dmg;
+          sndAttack3.trigger();
           thePlayer.isHurt = true;          
         }     
       }      
@@ -280,7 +304,7 @@ class Enemy
     else dist = 15;
     fill(244, 3, 3);
     noStroke();
-    rect(position.x - dist, position.y - 60, map(health, 0, 100, 0, 50), 5);
+    rect(position.x - dist, position.y - 80, map(health, 0, 100, 0, 50), 5);
   }
 
   void drawStaminaBar()
@@ -290,7 +314,7 @@ class Enemy
     else dist = 15;
     fill(0, 255, 0);
     noStroke();
-    rect(position.x - dist, position.y - 55, map(stamina, 0, 100, 0, 50), 5);
+    rect(position.x - dist, position.y - 75, map(stamina, 0, 100, 0, 50), 5);
   }
 
   void regenerateStamina()

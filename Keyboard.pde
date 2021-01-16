@@ -13,8 +13,8 @@ class Keyboard {
    */
 
   void pressKey(int key, int keyCode) {
-    if(key == 'r' || key == 'R' || key == 'ρ' || key == 'Ρ') { // never will be held down, so no Boolean needed to track it
-      if(gameWon()) { // if the game has been won...
+    if (key == 'r' || key == 'R' || key == 'ρ' || key == 'Ρ') { // never will be held down, so no Boolean needed to track it
+      if (gameEnded) { // if the game has been won...
         resetGame(); // then R key resets it
       }
     }

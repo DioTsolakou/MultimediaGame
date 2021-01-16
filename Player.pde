@@ -39,6 +39,8 @@ class Player {
     coinsCollected = 0;
     velocity.x = 0;
     velocity.y = 0;
+    health = 100;
+    stamina = 100;
   }
   
   void inputCheck() {
@@ -60,7 +62,7 @@ class Player {
     
     if (isOnGround) { // player can only jump if currently on the ground
       if (theKeyboard.holdingSpace || theKeyboard.holdingUp) { // either up arrow or space bar cause the player to jump
-        //sndJump.trigger(); // play sound
+        sndJump.trigger(); // play sound
         velocity.y = -JUMP_POWER; // adjust vertical speed
         isOnGround = false; // mark that the player has left the ground, i.e. cannot jump again for now
       }
@@ -130,28 +132,28 @@ class Player {
       }
     }
     
-    if (theWorld.worldSquareAt(leftSideLow)==World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(leftSideLow) == World.TILE_SOLID) {
       position.x = theWorld.rightOfSquare(leftSideLow)+wallProbeDistance;
       if(velocity.x < 0) {
         velocity.x = 0.0;
       }
     }
    
-    if (theWorld.worldSquareAt(leftSideHigh)==World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID) {
       position.x = theWorld.rightOfSquare(leftSideHigh)+wallProbeDistance;
       if(velocity.x < 0) {
         velocity.x = 0.0;
       }
     }
    
-    if (theWorld.worldSquareAt(rightSideLow)==World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID) {
       position.x = theWorld.leftOfSquare(rightSideLow)-wallProbeDistance;
       if (velocity.x > 0) {
         velocity.x = 0.0;
       }
     }
    
-    if (theWorld.worldSquareAt(rightSideHigh)==World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(rightSideHigh) == World.TILE_SOLID) {
       position.x = theWorld.leftOfSquare(rightSideHigh)-wallProbeDistance;
       if (velocity.x > 0) {
         velocity.x = 0.0;
@@ -159,32 +161,18 @@ class Player {
     }
   }
 
-  void checkForCoinGetting() {
-    PVector centerOfPlayer;
-    // we use this to check for coin overlap in center of player
-    // (remember that "position" is keeping track of bottom center of feet)
-    centerOfPlayer = new PVector(position.x,position.y-characterIdle[0].height/2);
-
-    if (theWorld.worldSquareAt(centerOfPlayer)==World.TILE_COIN) {
-      theWorld.setSquareAtToThis(centerOfPlayer, World.TILE_EMPTY);
-      //sndCoin.trigger();
-      coinsCollected++;
-    }
-  }
-
   void checkForFalling() {
     // If we're standing on an empty or coin tile, we're not standing on anything. Fall!
-    if (theWorld.worldSquareAt(position) == World.TILE_EMPTY ||
-       theWorld.worldSquareAt(position) == World.TILE_COIN) {
+    if (theWorld.worldSquareAt(position) == World.TILE_EMPTY) {
        isOnGround = false;
     }
     
     if (isOnGround == false) { // not on ground?    
-      if (theWorld.worldSquareAt(position) == World.TILE_SOLID) { // landed on solid square?
+      if (theWorld.worldSquareAt(position) == World.TILE_SOLID) {
         isOnGround = true;
         position.y = theWorld.topOfSquare(position);
         velocity.y = 0.0;
-      } else { // fall
+      } else {
         velocity.y += GRAVITY_POWER;
       }
     }
@@ -195,8 +183,6 @@ class Player {
     
     checkForWallBumping();
     
-    checkForCoinGetting();
-    
     checkForFalling();
   }
   
@@ -206,17 +192,22 @@ class Player {
     
     if (velocity.x < -TRIVIAL_SPEED) {
       facingRight = false;
-    } else if (velocity.x > TRIVIAL_SPEED) {
+    }
+    else if (velocity.x > TRIVIAL_SPEED) {
       facingRight = true;
     }
+
+    if ((velocity.x > TRIVIAL_SPEED || velocity.x < -TRIVIAL_SPEED) && isOnGround && drawCounter % 15 == 0) 
+      sndWalk.trigger();
 
     if (health <= 0)
     {
       if (deathCounter != 6) {
         image(characterDeath[deathCounter], 0, 0); // animation doesn't work, does it on the air instead of actual death position
         if (drawCounter % 7 == 0) {
-          deathCounter++;         
+          deathCounter++;       
         }
+        if (drawCounter % 25 == 0) sndDeath.trigger(); // doesn't get triggered after first death
       }
 
       if (deathCounter == 6)
@@ -253,7 +244,7 @@ class Player {
       }
       else if (theKeyboard.holdingQuickAttack) 
       {
-        theKeyboard.holdingQuickAttack = playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack);
+        theKeyboard.holdingQuickAttack = playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack, 1);
 /*       if (attackCounter == 5)
         stamina -= 20; //consumes 4 times the stamina */
       }
@@ -261,11 +252,11 @@ class Player {
       {
         if (criticalChance > 0.15f)
         {
-          theKeyboard.holdingStrongAttack = playAttackAnimation(1, 4, theKeyboard.holdingStrongAttack);
+          theKeyboard.holdingStrongAttack = playAttackAnimation(1, 4, theKeyboard.holdingStrongAttack, 1);
         }
         else
         {
-          theKeyboard.holdingStrongAttack = playAttackAnimation(2, 8, theKeyboard.holdingStrongAttack);
+          theKeyboard.holdingStrongAttack = playAttackAnimation(2, 8, theKeyboard.holdingStrongAttack, 1.5);
         }
       }   
       else {
@@ -312,7 +303,7 @@ class Player {
     return counter;
   }
 
-  Boolean playAttackAnimation (int row, int mod, Boolean state)
+  Boolean playAttackAnimation (int row, int mod, Boolean state, float criticalFactor)
   {
     image(characterAttack[row][attackCounter], 0, 0);
     if(abs(velocity.x) > TRIVIAL_SPEED)
@@ -326,14 +317,14 @@ class Player {
         attackCounter = 0;
         state = false;
 
-        int dmg = 0;
+        float dmg = 0;
         if (theKeyboard.holdingQuickAttack) {
           stamina -= 20;
           dmg = 15;
         }
         if (theKeyboard.holdingStrongAttack) { //need to implement more dmg or less stamina for criticals
           stamina -= 40;
-          dmg = 30;
+          dmg = 30*criticalFactor;
         }
           
         // do damage
@@ -344,9 +335,12 @@ class Player {
           if (b1 && b2 && b3) {
             System.out.println(i + " took " + dmg + " damage");
             theEnemy[i].health -= dmg;
+            sndAttack2.trigger();
             System.out.println(i + "'s current health is " + theEnemy[i].health);
             theEnemy[i].isHurt = true;
-          }     
+          }
+          else
+            sndAttack1.trigger();
         }     
       }      
     }
@@ -372,13 +366,12 @@ class Player {
     fill(244, 3, 3);
     stroke(0);
 
-    float drawPos = cameraOffsetX;
-    println("drawPos = " + drawPos);
-    /*if (position.x < (World.GRID_UNITS_WIDE * World.GRID_UNIT_SIZE)/2) 
-      drawPos = Math.max(20, position.x - width/2 + 20);
+    float drawPos = 0;
+    if (position.x < (theWorld.GRID_UNIT_SIZE * theWorld.GRID_UNITS_WIDE) / 2)  
+      drawPos = Math.max(20, position.x - width/2);
     else 
-      drawPos = Math.min(3200 - width + 20, position.x - width/2 + 20);
-    */
+      drawPos = Math.min(3200 - width + 20, Math.abs(position.x - width/2));
+    
     rect(drawPos, 30, map(health, 0, 100, 0, 150), 20);
     fill(0, 0, 0);
     textSize(18);
@@ -406,8 +399,10 @@ class Player {
     stroke(0);
 
     float drawPos = 0;
-    if (position.x < 1600) drawPos = Math.max(20, position.x - width/2);
-    else drawPos = Math.min(3200 - width + 20, Math.abs(position.x - width/2));
+    if (position.x < (theWorld.GRID_UNIT_SIZE * theWorld.GRID_UNITS_WIDE) / 2)
+      drawPos = Math.max(20, position.x - width/2);
+    else
+      drawPos = Math.min(3200 - width + 20, Math.abs(position.x - width/2));
 
     rect(drawPos, 85, map(stamina, 0, 100, 0, 150), 20);
     fill(0, 0, 0);

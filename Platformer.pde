@@ -18,10 +18,11 @@ PImage[][] enemyAttack = new PImage[3][6];
 PImage winterTile;
 PImage bg_image;
 PShape custom_rect;
+Boolean gameEnded = false;
 
 // music and sound effects
 AudioPlayer music; // AudioPlayer uses less memory. Better for music.
-AudioSample sndJump, sndCoin; // AudioSample plays more respnosively. Better for sound effects.
+AudioSample sndJump, sndAttack1, sndAttack2, sndAttack3, sndWalk, sndDeath; // AudioSample plays more respnosively. Better for sound effects.
 
 // we use this to track how far the camera has scrolled left or right
 float cameraOffsetX;
@@ -57,8 +58,12 @@ void setup() { // called automatically when the program starts
   //music = minim.loadFile("PinballSpring.mp3", 1024);
   //music.loop();
   int buffersize = 256;
-  sndJump = minim.loadSample("jump.wav", buffersize);
-  sndCoin = minim.loadSample("coin.wav", buffersize);
+  sndJump = minim.loadSample("Sounds\\jump.wav", buffersize);
+  sndAttack1 = minim.loadSample("Sounds\\SwordSwing.wav", buffersize);
+  sndAttack2 = minim.loadSample("Sounds\\SwordHit.wav", buffersize);
+  sndAttack3 = minim.loadSample("Sounds\\MetalLightSliceMetal3.wav", buffersize);
+  sndWalk = minim.loadSample("Sounds\\CharacterWalk.wav", buffersize);
+  sndDeath = minim.loadSample("Sounds\\CharacterDeath.wav", buffersize);
   
   frameRate(60);
   
@@ -161,7 +166,11 @@ void resetGame() {
 }
 
 Boolean gameWon() { // checks whether all coins in the level have been collected
-  return (thePlayer.coinsCollected == theWorld.coinsInStage);
+  if (theWorld.worldSquareAt(thePlayer.position) == theWorld.TILE_FINISH)
+  {
+    gameEnded = true;
+  }
+  return gameEnded;
 }
 
 void outlinedText(String sayThis, float atX, float atY) {
@@ -224,25 +233,23 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
     textAlign(RIGHT);
     outlinedText("FPS", width - 40, 20);
     outlinedText(String.valueOf((int) frameRate), width - 10, 20);
-
-    textAlign(LEFT); 
-    outlinedText("Coins:"+thePlayer.coinsCollected +"/"+theWorld.coinsInStage,8, height-10);
     
     textAlign(RIGHT);
-    if(gameWon() == false) { // stop updating timer after player finishes
+    //gameWon();
+    if (gameWon() == false) { // stop updating timer after player finishes
       gameCurrentTimeSec = millis()/1000; // dividing by 1000 to turn milliseconds into seconds
     }
     int minutes = (gameCurrentTimeSec-gameStartTimeSec)/60;
     int seconds = (gameCurrentTimeSec-gameStartTimeSec)%60;
-    if(seconds < 10) { // pad the "0" into the tens position
+    if (seconds < 10) { // pad the "0" into the tens position
       outlinedText(minutes +":0"+seconds,width-8, height-10);
     } else {
       outlinedText(minutes +":"+seconds,width-8, height-10);
     }
     
     textAlign(CENTER); // center align the text
-    if(gameWon()) {
-      outlinedText("All Coins Collected!\nPress R to Reset.",width/2, height/2-12);
+    if (gameWon()) {
+      outlinedText("You finished the game!\nPress R to Reset.",width/2, height/2-12);
     }
   }
 }
@@ -258,7 +265,11 @@ void keyReleased() {
 void stop() { // automatically called when program exits. here we'll stop and unload sounds.
   //music.close();
   sndJump.close();
-  sndCoin.close();
+  sndAttack1.close();
+  sndAttack2.close();
+  sndAttack3.close();
+  sndWalk.close();
+  sndDeath.close();
  
   minim.stop();
 
