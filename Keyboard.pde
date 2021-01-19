@@ -12,6 +12,11 @@ class Keyboard {
       }
     }
 
+    if (key == '/') // debug only
+    {
+      resetGame(theWorld.start_Grid, 1);
+    }
+
     if ((key == 'a' || key == 'A' || key == 'α' || key == 'Α') && thePlayer.stamina >= 20)
     {
       holdingQuickAttack = true;
@@ -34,6 +39,7 @@ class Keyboard {
       holdingSpace = true;
     }
   }
+
   void releaseKey(int key, int keyCode) {
     if (keyCode == UP) {
       holdingUp = false;

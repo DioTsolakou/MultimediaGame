@@ -19,7 +19,8 @@ PImage bg_image;
 PShape custom_rect;
 Boolean gameEnded = false;
 static int level = 1;
-
+int helpDisplayTime;
+int enemiesAlive;
 
 AudioPlayer music;
 AudioSample sndJump, sndAttack1, sndAttack2, sndAttack3, sndWalk, sndDeath;
@@ -64,6 +65,8 @@ void setup() {
   frameRate(60);
   
   resetGame(theWorld.start_Grid, 1); // sets up player, game level, and timer
+
+  helpDisplayTime = millis();
 }
 
 void initEnemies()
@@ -72,6 +75,7 @@ void initEnemies()
   {
     theEnemy[i] = new Enemy();
   }
+  enemiesAlive = theEnemy.length;
 }
 
 void loadCharacterAnimations(String characterName)
@@ -138,7 +142,7 @@ void loadAttackAnimation(String characterName)
 
 public void loadLevels(String levelName)
 {
-  levels = new PImage[3][8];
+  levels = new PImage[3][15];
   for(int i = 0; i < levels.length; i++)
   {
     levels[i][0] = loadImage(levelName+"\\BG.png");
@@ -152,7 +156,7 @@ public void loadLevels(String levelName)
 
 void loadObjects(String levelName)
 {
-  objects = new PImage[3][9];
+  objects = new PImage[3][12];
   for(int i = 0; i < objects.length; i++)
   {
     for (int j = 1; j < objects[0].length; j++)
@@ -164,17 +168,15 @@ void loadObjects(String levelName)
 
 void nextLevel()
 {
-  if (level == 1)
+  if (level == 1 && enemiesAlive == 0)
   {
     resetGame(theWorld.level_2_Grid, 2);
   }
-  else if (level == 2)
+  else if (level == 2 && enemiesAlive == 0)
   {
     resetGame(theWorld.level_3_Grid, 3);
   }
   else return;
-  loadLevels("level"+level);
-  loadObjects("level"+level);
 }
 
 void loadDustEffects()
@@ -197,12 +199,15 @@ void resetGame(int [][] grid,int currentLevel)
   
   theWorld.reload(grid); // reset world map
 
+  loadLevels("level"+level);
+  loadObjects("level"+level);
+
   // reset timer in corner
   gameCurrentTimeSec = gameStartTimeSec = millis()/1000;
 }
 
 Boolean gameWon() {
-  if ((theWorld.worldSquareAt(thePlayer.position) == theWorld.TILE_FINISH) && level == 3)
+  if ((theWorld.worldSquareAt(thePlayer.position) == theWorld.TILE_FINISH) && (level == 3 && enemiesAlive == 0))
   {
     gameEnded = true;
   }
@@ -255,35 +260,52 @@ void draw() {
   popMatrix();
   
   if (focused == false) {
-    textAlign(CENTER);
-    outlinedText("Click this area to play\n\nUse arrows to move\nSpacebar to jump.\n\nA for quick attack\nD for strong attack",width/2, 50);
+    showHelp();
   } 
   else {
-    textAlign(LEFT);
-    outlinedText("Health", 20, 20);
-    outlinedText("Stamina", 20, 75);
+    if (millis() < helpDisplayTime + 10000)
+      showHelp();
 
-    textAlign(RIGHT);
-    outlinedText("FPS", width - 40, 20);
-    outlinedText(String.valueOf((int) frameRate), width - 10, 20);
-    
-    textAlign(RIGHT);
-    //gameWon();
-    if (gameWon() == false) {
-      gameCurrentTimeSec = millis()/1000;
-    }
-    int minutes = (gameCurrentTimeSec-gameStartTimeSec)/60;
-    int seconds = (gameCurrentTimeSec-gameStartTimeSec)%60;
-    if (seconds < 10) {
-      outlinedText(minutes +":0"+seconds,width-8, height-10);
-    } else {
-      outlinedText(minutes +":"+seconds,width-8, height-10);
-    }
+    showHUD();
     
     textAlign(CENTER);
     if (gameWon()) {
       outlinedText("You finished the game!\nPress R to Reset.",width/2, height/2-12);
     }
+  }
+}
+
+void showHelp()
+{
+  textAlign(CENTER);
+  outlinedText("Click this area to play\n\nUse arrows to move\nSpacebar to jump.\n\nA for quick attack\nD for strong attack\n\nKill all enemies to progress to the next level.", 
+                width/2, 50);
+}
+
+void showHUD()
+{
+  textAlign(LEFT);
+  outlinedText("Health", 20, 20);
+  outlinedText("Stamina", 20, 75);
+
+  textAlign(RIGHT);
+  outlinedText("FPS", width - 40, 20);
+  outlinedText(String.valueOf((int) frameRate), width - 10, 20);
+
+  textAlign(RIGHT);
+  outlinedText("Level Time :", width - 60, height - 10);
+    
+  textAlign(RIGHT);
+  //gameWon();
+  if (gameWon() == false) {
+    gameCurrentTimeSec = millis()/1000;
+  }
+  int minutes = (gameCurrentTimeSec-gameStartTimeSec)/60;
+  int seconds = (gameCurrentTimeSec-gameStartTimeSec)%60;
+  if (seconds < 10) {
+    outlinedText(minutes +":0"+seconds, width-8, height-10);
+  } else {
+    outlinedText(minutes +":"+seconds, width-8, height-10);
   }
 }
 
