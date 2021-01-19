@@ -273,6 +273,8 @@ void draw() {
       outlinedText("You finished the game!\nPress R to Reset.",width/2, height/2-12);
     }
   }
+
+  System.out.println(enemiesAlive);
 }
 
 void showHelp()

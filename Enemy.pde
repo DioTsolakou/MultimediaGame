@@ -235,7 +235,7 @@ class Enemy
       if (deathCounter != 6) {
         image(enemyDeath[deathCounter], 0, 0);
         if (drawCounter % 7 == 0) {
-          deathCounter++;         
+          deathCounter++;     
         }
       }
     }
