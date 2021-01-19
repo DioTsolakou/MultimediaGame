@@ -1,16 +1,15 @@
 class Player {
-  PVector position, velocity; // PVector contains two floats, x and y
+  PVector position, velocity;
 
-  Boolean isOnGround; // used to keep track of whether the player is on the ground. useful for control and animation.
-  Boolean facingRight; // used to keep track of which direction the player last moved in. used to flip player image.
-  int coinsCollected; // a counter to keep a tally on how many coins the player has collected
+  Boolean isOnGround;
+  Boolean facingRight;
   
-  static final float JUMP_POWER = 11.0; // how hard the player jolts upward on jump
+  static final float JUMP_POWER = 11.0; // how hard the player jumps
   static final float RUN_SPEED = 5.0; // force of player movement on ground, in pixels/cycle
   static final float AIR_RUN_SPEED = 2.0; // like run speed, but used for control while in the air
   static final float SLOWDOWN_PERC = 0.6; // friction from the ground. multiplied by the x speed each frame.
   static final float AIR_SLOWDOWN_PERC = 0.85; // resistance in the air, otherwise air control enables crazy speeds
-  static final float TRIVIAL_SPEED = 1.0; // if under this speed, the player is drawn as standing still
+  static final float TRIVIAL_SPEED = 1.0; // if under this speed, the player is idle
 
   int drawCounter = 1;
   int idleCounter = 0;
@@ -27,7 +26,7 @@ class Player {
   Object[] ret = new Object[2];
 
   
-  Player() { // constructor, gets called automatically when the Player instance is created
+  Player() {
     isOnGround = false;
     facingRight = true;
     position = new PVector();
@@ -36,7 +35,6 @@ class Player {
   }
   
   void reset() {
-    coinsCollected = 0;
     velocity.x = 0;
     velocity.y = 0;
     health = 100;
@@ -44,8 +42,6 @@ class Player {
   }
   
   void inputCheck() {
-    // keyboard flags are set by keyPressed/keyReleased in the main .pde
-    
     float speedHere = (isOnGround ? RUN_SPEED : AIR_RUN_SPEED);
     float frictionHere = (isOnGround ? SLOWDOWN_PERC : AIR_SLOWDOWN_PERC);
     
@@ -60,33 +56,20 @@ class Player {
     velocity.x += factor * speedHere;
     velocity.x *= frictionHere;
     
-    if (isOnGround) { // player can only jump if currently on the ground
-      if (theKeyboard.holdingSpace || theKeyboard.holdingUp) { // either up arrow or space bar cause the player to jump
-        sndJump.trigger(); // play sound
-        velocity.y = -JUMP_POWER; // adjust vertical speed
-        isOnGround = false; // mark that the player has left the ground, i.e. cannot jump again for now
+    if (isOnGround) {
+      if (theKeyboard.holdingSpace || theKeyboard.holdingUp) {
+        sndJump.trigger();
+        velocity.y = -JUMP_POWER;
+        isOnGround = false;
       }
     }
   }
   
   void checkForWallBumping() {
-    float guyWidth = characterIdle[0].width*0.7; // think of image size of player standing as the player's physical size
+    float guyWidth = characterIdle[0].width*0.7;
     float guyHeight = characterIdle[0].height*0.75;
     int wallProbeDistance = int(guyWidth*0.3);
     int ceilingProbeDistance = int(guyHeight*0.95);
-    
-    /* Because of how we draw the player, "position" is the center of the feet/bottom
-     * To detect and handle wall/ceiling collisions, we create 5 additional positions:
-     * leftSideHigh - left of center, at shoulder/head level
-     * leftSideLow - left of center, at shin level
-     * rightSideHigh - right of center, at shoulder/head level
-     * rightSideLow - right of center, at shin level
-     * topSide - horizontal center, at tip of head
-     * These 6 points - 5 plus the original at the bottom/center - are all that we need
-     * to check in order to make sure the player can't move through blocks in the world.
-     * This works because the block sizes (World.GRID_UNIT_SIZE) aren't small enough to
-     * fit between the cracks of those collision points checked.
-     */
     
     // used as probes to detect running into walls, ceiling
     PVector leftSideHigh, rightSideHigh, leftSideLow, rightSideLow, topSide;
@@ -103,7 +86,7 @@ class Player {
     leftSideHigh.y = rightSideHigh.y = position.y-0.8*guyHeight; // shoulder high
 
     topSide.x = position.x; // center of player
-    topSide.y = position.y - ceilingProbeDistance; // top of guy
+    topSide.y = position.y - ceilingProbeDistance; // top of player
 
     // if any edge of the player is inside a red killblock, reset the round
     if ( theWorld.worldSquareAt(topSide) == World.TILE_KILLBLOCK ||
@@ -111,16 +94,30 @@ class Player {
          theWorld.worldSquareAt(leftSideLow) == World.TILE_KILLBLOCK ||
          theWorld.worldSquareAt(rightSideHigh) == World.TILE_KILLBLOCK ||
          theWorld.worldSquareAt(rightSideLow) == World.TILE_KILLBLOCK ||
-         theWorld.worldSquareAt(position) == World.TILE_KILLBLOCK) {
-      resetGame();
-      return; // any other possible collisions would be irrelevant, exit function now
+         theWorld.worldSquareAt(position) == World.TILE_KILLBLOCK || 
+         theWorld.worldSquareAt(topSide) == World.TILE_KILLBLOCK_2 ||
+         theWorld.worldSquareAt(leftSideHigh) == World.TILE_KILLBLOCK_2 ||
+         theWorld.worldSquareAt(leftSideLow) == World.TILE_KILLBLOCK_2 ||
+         theWorld.worldSquareAt(rightSideHigh) == World.TILE_KILLBLOCK_2 ||
+         theWorld.worldSquareAt(rightSideLow) == World.TILE_KILLBLOCK_2 ||
+         theWorld.worldSquareAt(position) == World.TILE_KILLBLOCK_2) {
+      resetGame(theWorld.start_Grid, 1);
+      loadLevels("level1");
+      loadObjects("level1");
+      return;
+    }
+
+    if (theWorld.worldSquareAt(topSide) == World.TILE_FINISH || theWorld.worldSquareAt(leftSideHigh) == World.TILE_FINISH ||
+        theWorld.worldSquareAt(leftSideLow) == World.TILE_FINISH || theWorld.worldSquareAt(rightSideHigh) == World.TILE_FINISH ||
+        theWorld.worldSquareAt(rightSideLow) == World.TILE_FINISH || theWorld.worldSquareAt(position) == World.TILE_FINISH)
+    {
+      nextLevel();
     }
     
-    // the following conditionals just check for collisions with each bump probe
-    // depending upon which probe has collided, we push the player back the opposite direction
-    
-    if (theWorld.worldSquareAt(topSide) == World.TILE_SOLID) {
-      if (theWorld.worldSquareAt(position) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(topSide) == World.TILE_SOLID || theWorld.worldSquareAt(topSide) == World.TILE_SOLID_2 || theWorld.worldSquareAt(topSide) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(topSide) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(topSide) == World.TILE_RIGHT_EDGE) {
+      if (theWorld.worldSquareAt(position) == World.TILE_SOLID  || theWorld.worldSquareAt(position) == World.TILE_SOLID_2 || theWorld.worldSquareAt(position) == World.TILE_LEFT_EDGE || 
+          theWorld.worldSquareAt(position) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(position) == World.TILE_RIGHT_EDGE) {
         position.sub(velocity);
         velocity.x = 0.0;
         velocity.y = 0.0;
@@ -132,28 +129,44 @@ class Player {
       }
     }
     
-    if (theWorld.worldSquareAt(leftSideLow) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(leftSideLow) == World.TILE_SOLID  || 
+        theWorld.worldSquareAt(leftSideLow) == World.TILE_SOLID_2 || 
+        theWorld.worldSquareAt(leftSideLow) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(leftSideLow) == World.TILE_PLATFORM_CENTER ||
+        theWorld.worldSquareAt(leftSideLow) == World.TILE_RIGHT_EDGE) {
       position.x = theWorld.rightOfSquare(leftSideLow)+wallProbeDistance;
       if(velocity.x < 0) {
         velocity.x = 0.0;
       }
     }
    
-    if (theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID || 
+        theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID_2 || 
+        theWorld.worldSquareAt(leftSideHigh) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(leftSideHigh) == World.TILE_PLATFORM_CENTER ||
+        theWorld.worldSquareAt(leftSideHigh) == World.TILE_RIGHT_EDGE) {
       position.x = theWorld.rightOfSquare(leftSideHigh)+wallProbeDistance;
       if(velocity.x < 0) {
         velocity.x = 0.0;
       }
     }
    
-    if (theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID || 
+        theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID_2 || 
+        theWorld.worldSquareAt(rightSideLow) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(rightSideLow) == World.TILE_PLATFORM_CENTER ||
+        theWorld.worldSquareAt(rightSideLow) == World.TILE_RIGHT_EDGE) {
       position.x = theWorld.leftOfSquare(rightSideLow)-wallProbeDistance;
       if (velocity.x > 0) {
         velocity.x = 0.0;
       }
     }
    
-    if (theWorld.worldSquareAt(rightSideHigh) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(rightSideHigh) == World.TILE_SOLID || 
+        theWorld.worldSquareAt(rightSideHigh) == World.TILE_SOLID_2 || 
+        theWorld.worldSquareAt(rightSideHigh) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(rightSideHigh) == World.TILE_PLATFORM_CENTER ||
+        theWorld.worldSquareAt(rightSideHigh) == World.TILE_RIGHT_EDGE) {
       position.x = theWorld.leftOfSquare(rightSideHigh)-wallProbeDistance;
       if (velocity.x > 0) {
         velocity.x = 0.0;
@@ -162,13 +175,13 @@ class Player {
   }
 
   void checkForFalling() {
-    // If we're standing on an empty or coin tile, we're not standing on anything. Fall!
     if (theWorld.worldSquareAt(position) == World.TILE_EMPTY) {
        isOnGround = false;
     }
     
-    if (isOnGround == false) { // not on ground?    
-      if (theWorld.worldSquareAt(position) == World.TILE_SOLID) {
+    if (isOnGround == false) {   
+      if (theWorld.worldSquareAt(position) == World.TILE_SOLID  || theWorld.worldSquareAt(position) == World.TILE_SOLID_2 || theWorld.worldSquareAt(position) == World.TILE_LEFT_EDGE || 
+          theWorld.worldSquareAt(position) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(position) == World.TILE_RIGHT_EDGE) {
         isOnGround = true;
         position.y = theWorld.topOfSquare(position);
         velocity.y = 0.0;
@@ -212,25 +225,26 @@ class Player {
 
       if (deathCounter == 6)
       {
-        resetGame();
+        resetGame(theWorld.start_Grid, 1);
       }
     }
     
     drawHealthBar();
     drawStaminaBar();
     
-    pushMatrix(); // lets us compound/accumulate translate/scale/rotate calls, then undo them all at once
+    pushMatrix();
+
     translate(position.x, position.y);
     if (facingRight == false)
     {
-      scale(-1, 1); // flip horizontally by scaling horizontally by -100%
+      scale(-1, 1); // flip horizontally
     }
     translate(-guyWidth/2, -guyHeight); // drawing images centered on character's feet
 
     if (!isHurt)
     {
       if (isOnGround == false)
-      { // falling or jumping
+      {
         jumpCounterGlobal++;
         //attackCounter = 5; // after attackCounter++ it becomes 6 so holdingQuickAttack becomes false
 
@@ -322,7 +336,7 @@ class Player {
           stamina -= 20;
           dmg = 15;
         }
-        if (theKeyboard.holdingStrongAttack) { //need to implement more dmg or less stamina for criticals
+        if (theKeyboard.holdingStrongAttack) {
           stamina -= 40;
           dmg = 30*criticalFactor;
         }

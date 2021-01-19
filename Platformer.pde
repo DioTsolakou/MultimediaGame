@@ -1,9 +1,6 @@
-// these next 2 lines are used for sound
 import ddf.minim.*;
 Minim minim;
 
-// for storing and referencing animation frames for the player character
-//PImage[] characterIdle, characterRun, characterDeath, characterHurt, characterJump, dust, enemyMove;
 PImage[] characterIdle = new PImage[4];
 PImage[] characterRun = new PImage[6];
 PImage[] characterDeath = new PImage[6];
@@ -15,16 +12,18 @@ PImage[] enemyMove = new PImage[6];
 PImage[] enemyDeath = new PImage[6];
 PImage enemyHurt = new PImage();
 PImage[][] enemyAttack = new PImage[3][6];
+PImage[][] levels;
+PImage [][] objects;
 PImage winterTile;
 PImage bg_image;
 PShape custom_rect;
 Boolean gameEnded = false;
+static int level = 1;
 
-// music and sound effects
-AudioPlayer music; // AudioPlayer uses less memory. Better for music.
-AudioSample sndJump, sndAttack1, sndAttack2, sndAttack3, sndWalk, sndDeath; // AudioSample plays more respnosively. Better for sound effects.
 
-// we use this to track how far the camera has scrolled left or right
+AudioPlayer music;
+AudioSample sndJump, sndAttack1, sndAttack2, sndAttack3, sndWalk, sndDeath;
+
 float cameraOffsetX;
 
 Player thePlayer = new Player();
@@ -35,28 +34,25 @@ int enemyCounter = 0;
 
 PFont font;
 
-// we use these for keeping track of how long player has played
 int gameStartTimeSec,gameCurrentTimeSec;
 
-// by adding this to the player's y velocity every frame, we get gravity
-final float GRAVITY_POWER = 0.5; // try making it higher or lower!
+final float GRAVITY_POWER = 0.5;
 
-void setup() { // called automatically when the program starts
+void setup() {
   size(1280, 720, P2D);
   
   font = loadFont("SansSerif-20.vlw");
-  bg_image = loadImage("level1/BG.png");
 
   loadAnimations("GraveRobber");
   initEnemies();
 
-  winterTile = loadImage("winterTile.png");
+  loadLevels("level1"); 
+  loadObjects("level1");
   
   cameraOffsetX = 0.0;
   
   minim = new Minim(this);
-  //music = minim.loadFile("PinballSpring.mp3", 1024);
-  //music.loop();
+
   int buffersize = 256;
   sndJump = minim.loadSample("Sounds\\jump.wav", buffersize);
   sndAttack1 = minim.loadSample("Sounds\\SwordSwing.wav", buffersize);
@@ -67,7 +63,7 @@ void setup() { // called automatically when the program starts
   
   frameRate(60);
   
-  resetGame(); // sets up player, game level, and timer
+  resetGame(theWorld.start_Grid, 1); // sets up player, game level, and timer
 }
 
 void initEnemies()
@@ -140,6 +136,47 @@ void loadAttackAnimation(String characterName)
   }
 }
 
+public void loadLevels(String levelName)
+{
+  levels = new PImage[3][8];
+  for(int i = 0; i < levels.length; i++)
+  {
+    levels[i][0] = loadImage(levelName+"\\BG.png");
+    bg_image =  levels[i][0];
+    for (int j = 1; j < levels[0].length; j++)
+    {
+      levels[i][j] = loadImage(levelName+"\\Tiles\\"+j+".png");
+    }
+  }
+}
+
+void loadObjects(String levelName)
+{
+  objects = new PImage[3][9];
+  for(int i = 0; i < objects.length; i++)
+  {
+    for (int j = 1; j < objects[0].length; j++)
+    {
+      objects[i][j] = loadImage(levelName+"\\Object\\"+ (j+1) +".png");
+    }
+  }
+}
+
+void nextLevel()
+{
+  if (level == 1)
+  {
+    resetGame(theWorld.level_2_Grid, 2);
+  }
+  else if (level == 2)
+  {
+    resetGame(theWorld.level_3_Grid, 3);
+  }
+  else return;
+  loadLevels("level"+level);
+  loadObjects("level"+level);
+}
+
 void loadDustEffects()
 {
   dust = new PImage[6];
@@ -150,23 +187,22 @@ void loadDustEffects()
   }
 }
 
-void resetGame() {
-  // This function copies start_Grid into worldGrid, putting coins back
-  // multiple levels could be supported by copying in a different start grid
-  
-  thePlayer.reset(); // reset the coins collected number, etc.
+void resetGame(int [][] grid,int currentLevel)
+{
+  thePlayer.reset();
+  level = currentLevel;
 
   for (int i = 0; i < theEnemy.length; i++)
     theEnemy[i].reset();
   
-  theWorld.reload(); // reset world map
+  theWorld.reload(grid); // reset world map
 
   // reset timer in corner
-  gameCurrentTimeSec = gameStartTimeSec = millis()/1000; // dividing by 1000 to turn milliseconds into seconds
+  gameCurrentTimeSec = gameStartTimeSec = millis()/1000;
 }
 
-Boolean gameWon() { // checks whether all coins in the level have been collected
-  if (theWorld.worldSquareAt(thePlayer.position) == theWorld.TILE_FINISH)
+Boolean gameWon() {
+  if ((theWorld.worldSquareAt(thePlayer.position) == theWorld.TILE_FINISH) && level == 3)
   {
     gameEnded = true;
   }
@@ -174,22 +210,19 @@ Boolean gameWon() { // checks whether all coins in the level have been collected
 }
 
 void outlinedText(String sayThis, float atX, float atY) {
-  textFont(font); // use the font we loaded
-  fill(0); // white for the upcoming text, drawn in each direction to make outline
+  textFont(font);
+  fill(0);
   text(sayThis, atX-1,atY);
   text(sayThis, atX+1,atY);
   text(sayThis, atX,atY-1);
   text(sayThis, atX,atY+1);
-  fill(255); // white for this next text, in the middle
+  fill(255);
   text(sayThis, atX,atY);
 }
 
 void updateCameraPosition() {
   int rightEdge = World.GRID_UNITS_WIDE*World.GRID_UNIT_SIZE-width;
-  // the left side of the camera view should never go right of the above number
-  // think of it as "total width of the game world" (World.GRID_UNITS_WIDE*World.GRID_UNIT_SIZE)
-  // minus "width of the screen/window" (width)
-  
+
   cameraOffsetX = thePlayer.position.x-width/2;
   if (cameraOffsetX < 0) {
     cameraOffsetX = 0;
@@ -200,9 +233,9 @@ void updateCameraPosition() {
   }
 }
 
-void draw() { // called automatically, 24 times per second because of setup()'s call to frameRate(24)
-  pushMatrix(); // lets us easily undo the upcoming translate call
-  translate(-cameraOffsetX, 0.0); // affects all upcoming graphics calls, until popMatrix
+void draw() {
+  pushMatrix();
+  translate(-cameraOffsetX, 0.0);
 
   updateCameraPosition();
 
@@ -219,9 +252,9 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
     theEnemy[i].draw();
   }
   
-  popMatrix(); // undoes the translate function from earlier in draw()
+  popMatrix();
   
-  if (focused == false) { // does the window currently not have keyboard focus?
+  if (focused == false) {
     textAlign(CENTER);
     outlinedText("Click this area to play\n\nUse arrows to move\nSpacebar to jump.\n\nA for quick attack\nD for strong attack",width/2, 50);
   } 
@@ -236,18 +269,18 @@ void draw() { // called automatically, 24 times per second because of setup()'s 
     
     textAlign(RIGHT);
     //gameWon();
-    if (gameWon() == false) { // stop updating timer after player finishes
-      gameCurrentTimeSec = millis()/1000; // dividing by 1000 to turn milliseconds into seconds
+    if (gameWon() == false) {
+      gameCurrentTimeSec = millis()/1000;
     }
     int minutes = (gameCurrentTimeSec-gameStartTimeSec)/60;
     int seconds = (gameCurrentTimeSec-gameStartTimeSec)%60;
-    if (seconds < 10) { // pad the "0" into the tens position
+    if (seconds < 10) {
       outlinedText(minutes +":0"+seconds,width-8, height-10);
     } else {
       outlinedText(minutes +":"+seconds,width-8, height-10);
     }
     
-    textAlign(CENTER); // center align the text
+    textAlign(CENTER);
     if (gameWon()) {
       outlinedText("You finished the game!\nPress R to Reset.",width/2, height/2-12);
     }
@@ -262,8 +295,7 @@ void keyReleased() {
   theKeyboard.releaseKey(key, keyCode);
 }
 
-void stop() { // automatically called when program exits. here we'll stop and unload sounds.
-  //music.close();
+void stop() {
   sndJump.close();
   sndAttack1.close();
   sndAttack2.close();
@@ -273,5 +305,5 @@ void stop() { // automatically called when program exits. here we'll stop and un
  
   minim.stop();
 
-  super.stop(); // tells program to continue doing its normal ending activity
+  super.stop();
 }

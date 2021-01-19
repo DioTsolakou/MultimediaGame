@@ -1,21 +1,14 @@
 class Keyboard {
-  // used to track keyboard input
   Boolean holdingUp, holdingRight, holdingLeft, holdingSpace, holdingQuickAttack, holdingStrongAttack;
   
   Keyboard() {
     holdingUp = holdingRight = holdingLeft = holdingSpace = holdingQuickAttack = holdingStrongAttack = false;
   }
-  
-  /* The way that Processing, and many programming languages/environments, deals with keys is
-   * treating them like events (something can happen the moment it goes down, or when it goes up).
-   * Because we want to treat them like buttons - checking "is it held down right now?" - we need to
-   * use those pressed and released events to update some true/false values that we can check elsewhere.
-   */
 
   void pressKey(int key, int keyCode) {
-    if (key == 'r' || key == 'R' || key == 'ρ' || key == 'Ρ') { // never will be held down, so no Boolean needed to track it
+    if (key == 'r' || key == 'R' || key == 'ρ' || key == 'Ρ') {
       if (gameEnded) { // if the game has been won...
-        resetGame(); // then R key resets it
+        resetGame(theWorld.start_Grid, 1); // then R key resets it
       }
     }
 

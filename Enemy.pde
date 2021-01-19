@@ -54,19 +54,18 @@ class Enemy
     topSide = new PVector();
 
     // update wall probes
-    leftSideHigh.x = leftSideLow.x = position.x - wallProbeDistance; // left edge of player
-    rightSideHigh.x = rightSideLow.x = position.x + wallProbeDistance; // right edge of player
+    leftSideHigh.x = leftSideLow.x = position.x - wallProbeDistance; // left edge of enemy
+    rightSideHigh.x = rightSideLow.x = position.x + wallProbeDistance; // right edge of enemy
     leftSideLow.y = rightSideLow.y = position.y - 0.2*enemyHeight; // shin high
     leftSideHigh.y = rightSideHigh.y = position.y - 0.8*enemyHeight; // shoulder high
 
-    topSide.x = position.x; // center of player
-    topSide.y = position.y - ceilingProbeDistance; // top of guy
+    topSide.x = position.x; // center of enemy
+    topSide.y = position.y - ceilingProbeDistance; // top of enemy
     
-    // the following conditionals just check for collisions with each bump probe
-    // depending upon which probe has collided, we push the player back the opposite direction
-    
-    if (theWorld.worldSquareAt(topSide) == World.TILE_SOLID) {
-      if (theWorld.worldSquareAt(position) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(topSide) == World.TILE_SOLID || theWorld.worldSquareAt(topSide) == World.TILE_SOLID_2 || theWorld.worldSquareAt(topSide) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(topSide) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(topSide) == World.TILE_RIGHT_EDGE) {
+      if (theWorld.worldSquareAt(position) == World.TILE_SOLID || theWorld.worldSquareAt(position) == World.TILE_SOLID_2 || theWorld.worldSquareAt(position) == World.TILE_LEFT_EDGE ||
+          theWorld.worldSquareAt(position) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(position) == World.TILE_RIGHT_EDGE) {
         position.sub(velocity);
         velocity.x = 0.0;
         velocity.y = 0.0;
@@ -78,28 +77,40 @@ class Enemy
       }
     }
     
-    if (theWorld.worldSquareAt(leftSideLow) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(leftSideLow) == World.TILE_SOLID || 
+        theWorld.worldSquareAt(leftSideLow) == World.TILE_SOLID_2 || 
+        theWorld.worldSquareAt(leftSideLow) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(leftSideLow) == World.TILE_PLATFORM_CENTER) {
       position.x = theWorld.rightOfSquare(leftSideLow) + wallProbeDistance;
       if (velocity.x < 0) {
         patrol();
       }
     }
    
-    if (theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID || 
+        theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID_2 || 
+        theWorld.worldSquareAt(leftSideHigh) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(leftSideHigh) == World.TILE_PLATFORM_CENTER) {
       position.x = theWorld.rightOfSquare(leftSideHigh) + wallProbeDistance;
       if (velocity.x < 0) {
         patrol();
       }
     }
    
-    if (theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID || 
+        theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID_2 ||  
+        theWorld.worldSquareAt(rightSideLow) == World.TILE_PLATFORM_CENTER || 
+        theWorld.worldSquareAt(rightSideLow) == World.TILE_RIGHT_EDGE) {
       position.x = theWorld.leftOfSquare(rightSideLow) - wallProbeDistance;
       if (velocity.x > 0) {
         patrol();
       }
     }
    
-    if (theWorld.worldSquareAt(rightSideHigh) == World.TILE_SOLID) {
+    if (theWorld.worldSquareAt(rightSideHigh) == World.TILE_SOLID || 
+        theWorld.worldSquareAt(rightSideHigh) == World.TILE_SOLID_2 ||  
+        theWorld.worldSquareAt(rightSideHigh) == World.TILE_PLATFORM_CENTER || 
+        theWorld.worldSquareAt(rightSideHigh) == World.TILE_RIGHT_EDGE) {
       position.x = theWorld.leftOfSquare(rightSideHigh) - wallProbeDistance;
       if (velocity.x > 0) {
         patrol();
@@ -112,12 +123,13 @@ class Enemy
       isOnGround = false;
     }
       
-    if (isOnGround == false) { // not on ground?    
-      if (theWorld.worldSquareAt(position) == World.TILE_SOLID) { // landed on solid square?
+    if (isOnGround == false) {    
+      if (theWorld.worldSquareAt(position) == World.TILE_SOLID || theWorld.worldSquareAt(position) == World.TILE_SOLID_2 || theWorld.worldSquareAt(position) == World.TILE_LEFT_EDGE ||
+          theWorld.worldSquareAt(position) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(position) == World.TILE_RIGHT_EDGE) {
         isOnGround = true;
         position.y = theWorld.topOfSquare(position);
         velocity.y = 0.0;
-      } else { // fall
+      } else {
         velocity.y += GRAVITY_POWER;
       }
     }
@@ -172,7 +184,7 @@ class Enemy
     translate(position.x, position.y);
     if (facingRight == false)
     {
-      scale(-1, 1); // flip horizontally by scaling horizontally by -100%
+      scale(-1, 1); // flip horizontally
     }
     translate(-enemyWidth/2, -enemyHeight);
 
