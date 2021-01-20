@@ -35,6 +35,10 @@ class Enemy
     velocity.y = 0;
     health = 100;
     stamina = 100;
+    drawCounter = 1;
+    walkCounter = 0;
+    deathCounter = 0;
+    attackCounter = 0;
   }
 
   void collisionCheck()
@@ -62,12 +66,10 @@ class Enemy
     topSide.x = position.x; // center of enemy
     topSide.y = position.y - ceilingProbeDistance; // top of enemy
     
-    if (theWorld.worldSquareAt(topSide) == World.TILE_SOLID || theWorld.worldSquareAt(topSide) == World.TILE_SOLID_2 || theWorld.worldSquareAt(topSide) == World.TILE_LEFT_EDGE || 
-        theWorld.worldSquareAt(topSide) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(topSide) == World.TILE_RIGHT_EDGE ||
-        theWorld.worldSquareAt(topSide) == World.TILE_SOLID_OBJECT) {
-      if (theWorld.worldSquareAt(position) == World.TILE_SOLID || theWorld.worldSquareAt(position) == World.TILE_SOLID_2 || theWorld.worldSquareAt(position) == World.TILE_LEFT_EDGE ||
-          theWorld.worldSquareAt(position) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(position) == World.TILE_RIGHT_EDGE ||
-          theWorld.worldSquareAt(position) == World.TILE_SOLID_OBJECT) {
+    if (theWorld.worldSquareAt(topSide) == World.TILE_SOLID || theWorld.worldSquareAt(topSide) == World.TILE_SOLID_2 ||  
+        theWorld.worldSquareAt(topSide) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(topSide) == World.TILE_SOLID_OBJECT) {
+      if (theWorld.worldSquareAt(position) == World.TILE_SOLID || theWorld.worldSquareAt(position) == World.TILE_SOLID_2 || 
+          theWorld.worldSquareAt(position) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(position) == World.TILE_SOLID_OBJECT) {
         position.sub(velocity);
         velocity.x = 0.0;
         velocity.y = 0.0;
@@ -92,7 +94,7 @@ class Enemy
    
     if (theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID || 
         theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID_2 || 
-        theWorld.worldSquareAt(leftSideHigh) == World.TILE_LEFT_EDGE || 
+        theWorld.worldSquareAt(position) == World.TILE_LEFT_EDGE || 
         theWorld.worldSquareAt(leftSideHigh) == World.TILE_PLATFORM_CENTER ||
         theWorld.worldSquareAt(leftSideHigh) == World.TILE_SOLID_OBJECT) {
       position.x = theWorld.rightOfSquare(leftSideHigh) + wallProbeDistance;
@@ -104,7 +106,7 @@ class Enemy
     if (theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID || 
         theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID_2 ||  
         theWorld.worldSquareAt(rightSideLow) == World.TILE_PLATFORM_CENTER || 
-        theWorld.worldSquareAt(rightSideLow) == World.TILE_RIGHT_EDGE ||
+        theWorld.worldSquareAt(position) == World.TILE_RIGHT_EDGE ||
         theWorld.worldSquareAt(rightSideLow) == World.TILE_SOLID_OBJECT) {
       position.x = theWorld.leftOfSquare(rightSideLow) - wallProbeDistance;
       if (velocity.x > 0) {
@@ -122,6 +124,12 @@ class Enemy
         patrol();
       }
     }
+
+    int factor = 1;
+    if (facingRight) factor = 1;
+    else factor = -1;
+    if (theWorld.worldSquareAt(new PVector(position.x + factor * World.GRID_UNIT_SIZE, position.y + World.GRID_UNIT_SIZE/2)) == World.TILE_EMPTY)
+        patrol();
   }
 
   void checkForFalling() {
@@ -246,7 +254,6 @@ class Enemy
     if (drawCounter == 60)
     {
       drawCounter = 1;
-      //playerInRange = inRange(100);
       regenerateStamina();
       randomAttack = random(1.0f);
     }

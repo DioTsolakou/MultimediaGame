@@ -18,7 +18,8 @@ class Keyboard {
     }
     if (key == 'k') // debug only
     {
-      enemiesAlive = 0;
+      for (int i = 0; i < theEnemy.length; i++)
+        theEnemy[i].health = 0;
     }
 
     if ((key == 'a' || key == 'A' || key == 'α' || key == 'Α') && thePlayer.stamina >= 20)

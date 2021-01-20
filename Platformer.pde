@@ -20,7 +20,6 @@ PShape custom_rect;
 Boolean gameEnded = false;
 static int level = 1;
 int helpDisplayTime;
-int enemiesAlive;
 
 AudioPlayer music;
 AudioSample sndJump, sndAttack1, sndAttack2, sndAttack3, sndWalk, sndDeath;
@@ -75,7 +74,6 @@ void initEnemies()
   {
     theEnemy[i] = new Enemy();
   }
-  enemiesAlive = theEnemy.length;
 }
 
 void loadCharacterAnimations(String characterName)
@@ -159,7 +157,7 @@ void loadObjects(String levelName)
   objects = new PImage[3][12];
   for(int i = 0; i < objects.length; i++)
   {
-    for (int j = 1; j < objects[0].length; j++)
+    for (int j = 0; j < objects[0].length; j++)
     {
       objects[i][j] = loadImage(levelName+"\\Object\\"+ (j+1) +".png");
     }
@@ -168,11 +166,11 @@ void loadObjects(String levelName)
 
 void nextLevel()
 {
-  if (level == 1 && enemiesAlive == 0)
+  if (level == 1)
   {
     resetGame(theWorld.level_2_Grid, 2);
   }
-  else if (level == 2 && enemiesAlive == 0)
+  else if (level == 2)
   {
     resetGame(theWorld.level_3_Grid, 3);
   }
@@ -189,30 +187,27 @@ void loadDustEffects()
   }
 }
 
-void resetGame(int [][] grid,int currentLevel)
+void resetGame(int [][] grid, int currentLevel)
 {
   thePlayer.reset();
   level = currentLevel;
 
   for (int i = 0; i < theEnemy.length; i++)
     theEnemy[i].reset();
-
-  enemiesAlive = theEnemy.length;
   
   theWorld.reload(grid); // reset world map
+  theWorld.setRandomObjects();
 
   loadLevels("level"+level);
   loadObjects("level"+level);
+
+  if (gameWon()) gameEnded = false;
 
   // reset timer in corner
   gameCurrentTimeSec = gameStartTimeSec = millis()/1000;
 }
 
 Boolean gameWon() {
-  if ((theWorld.worldSquareAt(thePlayer.position) == theWorld.TILE_FINISH) && (level == 3 && enemiesAlive == 0))
-  {
-    gameEnded = true;
-  }
   return gameEnded;
 }
 
@@ -272,11 +267,9 @@ void draw() {
     
     textAlign(CENTER);
     if (gameWon()) {
-      outlinedText("You finished the game!\nPress R to Reset.",width/2, height/2-12);
+      outlinedText("You finished the game!\nPress R to Reset.", width/2, height/2-12);
     }
   }
-
-  System.out.println(enemiesAlive);
 }
 
 void showHelp()

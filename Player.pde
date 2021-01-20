@@ -3,6 +3,7 @@ class Player {
 
   Boolean isOnGround;
   Boolean facingRight;
+  Boolean flag;
   
   static final float JUMP_POWER = 11.0; // how hard the player jumps
   static final float RUN_SPEED = 5.0; // force of player movement on ground, in pixels/cycle
@@ -39,6 +40,13 @@ class Player {
     velocity.y = 0;
     health = 100;
     stamina = 100;
+    drawCounter = 1;
+    idleCounter = 0;
+    runCounter = 0;
+    jumpCounter = 0;
+    attackCounter = 0;
+    deathCounter = 0;
+    jumpCounterGlobal = 0;
   }
   
   void inputCheck() {
@@ -111,13 +119,22 @@ class Player {
         theWorld.worldSquareAt(leftSideLow) == World.TILE_FINISH || theWorld.worldSquareAt(rightSideHigh) == World.TILE_FINISH ||
         theWorld.worldSquareAt(rightSideLow) == World.TILE_FINISH || theWorld.worldSquareAt(position) == World.TILE_FINISH)
     {
-      nextLevel();
+      flag = true;
+      for (int i = 0; i < theEnemy.length; i++) {
+        if (theEnemy[i].health != 0) flag = false;
+      }
+      if (flag) {
+        if (level != 3)
+          nextLevel();
+        else gameEnded = true;
+      }
+        
     }
     
     if (theWorld.worldSquareAt(topSide) == World.TILE_SOLID || theWorld.worldSquareAt(topSide) == World.TILE_SOLID_2 || theWorld.worldSquareAt(topSide) == World.TILE_LEFT_EDGE || 
         theWorld.worldSquareAt(topSide) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(topSide) == World.TILE_RIGHT_EDGE ||
         theWorld.worldSquareAt(topSide) == World.TILE_CLIFF_FACE_LEFT || theWorld.worldSquareAt(topSide)== World.TILE_CLIFF_FACE_RIGHT || 
-          theWorld.worldSquareAt(topSide)== World.TILE_CLIFF_LEFT_DOWN || theWorld.worldSquareAt(topSide)== World.TILE_SOLID_OBJECT) {
+          theWorld.worldSquareAt(topSide) == World.TILE_CLIFF_LEFT_DOWN || theWorld.worldSquareAt(topSide)== World.TILE_SOLID_OBJECT) {
       if (theWorld.worldSquareAt(position) == World.TILE_SOLID  || theWorld.worldSquareAt(position) == World.TILE_SOLID_2 || theWorld.worldSquareAt(topSide) == World.TILE_LEFT_EDGE || 
           theWorld.worldSquareAt(position) == World.TILE_PLATFORM_CENTER || theWorld.worldSquareAt(position) == World.TILE_RIGHT_EDGE ||
           theWorld.worldSquareAt(position)== World.TILE_CLIFF_FACE_LEFT || theWorld.worldSquareAt(position)== World.TILE_CLIFF_FACE_RIGHT || 
@@ -271,8 +288,6 @@ class Player {
       else if (theKeyboard.holdingQuickAttack) 
       {
         theKeyboard.holdingQuickAttack = playAttackAnimation(0, 4, theKeyboard.holdingQuickAttack, 1);
-/*       if (attackCounter == 5)
-        stamina -= 20; //consumes 4 times the stamina */
       }
       else if (theKeyboard.holdingStrongAttack) //strong attack has the possibility to critically hit
       {
@@ -402,21 +417,6 @@ class Player {
     fill(0, 0, 0);
     textSize(18);
     text(health, drawPos + 75, 47);
-    
-    /*
-    if (position.x < 1600) {
-      rect(Math.max(width/20, position.x - width/2), 30, map(health, 0, 100, 0, 150), 20);
-      fill(0, 0, 0);
-      textSize(18);
-      text(health, Math.max(width/20, position.x - width/2) + 75, 47);
-    }
-    else {
-      rect(Math.min(3200 - width + width/20, position.x - width/2), 30, map(health, 0, 100, 0, 150), 20);
-      fill(0, 0, 0);
-      textSize(18);
-      text(health, Math.min(3200 - width + width/20, position.x - width/2) + 75, 47);
-    }
-    */
   }
 
   void drawStaminaBar()
@@ -434,18 +434,5 @@ class Player {
     fill(0, 0, 0);
     textSize(18);
     text(stamina, drawPos + 75, 102);
- 
-/*     if (position.x < 1600) {
-      rect(Math.max(20, position.x - width/2), 85, map(stamina, 0, 100, 0, 150), 20);
-      fill(0, 0, 0);
-      textSize(18);
-      text(stamina, Math.max(20, position.x - width/2) + 75, 102);
-    }
-    else {
-      rect(Math.min(3200 - width +  20, position.x - width/2), 85, map(stamina, 0, 100, 0, 150), 20);
-      fill(0, 0, 0);
-      textSize(18);
-      text(stamina, Math.min(3200 - width + 20, position.x - width/2) + 75, 102);
-    } */
   }
 }
