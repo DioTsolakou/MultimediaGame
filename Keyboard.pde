@@ -16,6 +16,10 @@ class Keyboard {
     {
       resetGame(theWorld.start_Grid, 1);
     }
+    if (key == 'k') // debug only
+    {
+      enemiesAlive = 0;
+    }
 
     if ((key == 'a' || key == 'A' || key == 'α' || key == 'Α') && thePlayer.stamina >= 20)
     {
