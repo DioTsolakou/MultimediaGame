@@ -196,6 +196,8 @@ void resetGame(int [][] grid,int currentLevel)
 
   for (int i = 0; i < theEnemy.length; i++)
     theEnemy[i].reset();
+
+  enemiesAlive = theEnemy.length;
   
   theWorld.reload(grid); // reset world map
 
